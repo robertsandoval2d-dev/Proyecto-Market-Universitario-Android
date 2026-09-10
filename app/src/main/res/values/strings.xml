@@ -3,4 +3,9 @@
     <string name="logo_univpe">Logo UNIVPE</string>
     <string name="icono_caja">Ícono caja</string>
     <string name="fondo_universidad">Imagen fondo universidad</string>
+
+
+    <string name="login_address">Correo Electrónico</string>
+    <string name="login_pass">Contraseña</string>
+
 </resources>
