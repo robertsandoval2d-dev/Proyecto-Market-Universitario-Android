@@ -2,6 +2,7 @@ package com.example.marketuniversitario.navigation
 
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,7 +38,7 @@ fun NavigationWrapper(
 
         composable ("login") {
             LoginRoute(
-                viewModel = viewModel(),
+                viewModel = hiltViewModel(),
 
                 onLoginSuccess = {
                     navHostController.navigate("inicio"){

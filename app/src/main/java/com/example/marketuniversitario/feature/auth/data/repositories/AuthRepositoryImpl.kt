@@ -1,12 +1,13 @@
-package com.example.marketuniversitario.feature.auth.data
+package com.example.marketuniversitario.feature.auth.data.repositories
 
-import com.example.marketuniversitario.feature.auth.domain.AuthRepository
+import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class AuthRepositoryImpl(
-    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
-) : AuthRepository{
+class AuthRepositoryImpl @Inject constructor(
+    private val firebaseAuth: FirebaseAuth
+) : AuthRepository {
 
     override suspend fun loginWithEmail(email: String, password: String): Result<Unit> {
         return try {

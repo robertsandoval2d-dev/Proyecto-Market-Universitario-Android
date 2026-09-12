@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.auth.domain
+package com.example.marketuniversitario.feature.auth.domain.repositories
 
 interface AuthRepository {
     suspend fun loginWithEmail(email: String, password: String): Result<Unit>
