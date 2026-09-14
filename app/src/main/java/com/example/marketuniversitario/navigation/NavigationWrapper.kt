@@ -11,6 +11,7 @@ import com.example.marketuniversitario.Greeting
 import com.example.marketuniversitario.feature.auth.ui.screen.LoginRoute
 import com.example.marketuniversitario.feature.auth.ui.screen.WelcomeScreen
 import com.example.marketuniversitario.feature.auth.ui.screen.LoginScreen
+import com.example.marketuniversitario.feature.auth.ui.screen.SignUpRoute
 import com.example.marketuniversitario.feature.splash.ui.screen.SplashScreen
 
 @Composable
@@ -32,6 +33,21 @@ fun NavigationWrapper(
             WelcomeScreen(
                 onNavigateToLoginScreen = {
                     navHostController.navigate("login")
+                },
+                onNavigateToSignUpScreen = {
+                    navHostController.navigate("signup")
+                }
+            )
+        }
+
+        composable ("signup"){
+            SignUpRoute(
+                viewModel = hiltViewModel(),
+                onRegisterSuccess = {
+                    navHostController.navigate("login")
+                },
+                onNavigateBack = {
+                    navHostController.navigateUp()
                 }
             )
         }

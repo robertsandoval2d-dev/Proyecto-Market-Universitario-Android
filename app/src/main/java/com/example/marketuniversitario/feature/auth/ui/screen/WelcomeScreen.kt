@@ -17,7 +17,8 @@ import com.example.marketuniversitario.R
 
 @Composable
 fun WelcomeScreen(
-    onNavigateToLoginScreen: () -> Unit
+    onNavigateToLoginScreen: () -> Unit,
+    onNavigateToSignUpScreen: () -> Unit
 ) {
     // Definición de los colores de tu Figma
     val guindaUNMSM = Color(0xFF8A002B)
@@ -121,11 +122,14 @@ fun WelcomeScreen(
 
             // Enlace al Registro
             Row(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "¿No tienes una cuenta?", color = Color.Gray, fontSize = 16.sp)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Regístrate", color = guindaUNMSM, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                TextButton(onClick = onNavigateToSignUpScreen) {
+                    Text(text = "Regístrate", color = guindaUNMSM, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

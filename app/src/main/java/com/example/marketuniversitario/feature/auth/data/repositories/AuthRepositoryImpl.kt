@@ -19,10 +19,32 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun register(email: String, password: String): Result<Boolean> {
-        TODO("Not yet implemented")
+        return try {
+            firebaseAuth.createUserWithEmailAndPassword(email,password).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendEmailVerification(): Result<Boolean> {
+        return try{
+            firebaseAuth.currentUser?.sendEmailVerification()?.await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override fun isUserLoggedIn(): Boolean {
         return firebaseAuth.currentUser != null
+    }
+
+    override fun isEmailVerified(): Boolean {
+        return firebaseAuth.currentUser?.isEmailVerified == true
+    }
+
+    override fun logout() {
+        firebaseAuth.signOut()
     }
 }
