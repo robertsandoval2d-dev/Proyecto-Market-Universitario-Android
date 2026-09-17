@@ -1,15 +1,38 @@
 package com.example.marketuniversitario.feature.auth.ui.screen
 
-import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,13 +45,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.marketuniversitario.R
+import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpEvent
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
 import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpState
+import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpStatus
 import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpViewModel
 
 @Composable
 fun SignUpScreen(
-    onSignUpSubmit: (String, String, String) -> Unit,
+    state: SignUpState,
+    onEvent: (SignUpEvent) -> Unit,
     onGoogleSignInClick: () -> Unit,
     onNavigateBack: () -> Unit = {}
 ) {
@@ -44,8 +70,9 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.Start
         ) {
             SignUpTopBar(onNavigateBack = onNavigateBack)
-            SignUpLayout(
-                onSignUpSubmit = onSignUpSubmit,
+            SignUpLayout (
+                state = state,
+                onEvent = onEvent,
                 onGoogleSignInClick = onGoogleSignInClick
             )
         }
@@ -81,7 +108,8 @@ fun SignUpTopBar(
 
 @Composable
 fun SignUpLayout(
-    onSignUpSubmit: (String, String, String) -> Unit,
+    state: SignUpState,
+    onEvent: (SignUpEvent) -> Unit,
     onGoogleSignInClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -91,7 +119,7 @@ fun SignUpLayout(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(60.dp))
         Text(
             text = "Crea tu cuenta",
             style = MaterialTheme.typography.displaySmall,
@@ -100,35 +128,32 @@ fun SignUpLayout(
             lineHeight = 40.sp
         )
         Spacer(modifier = Modifier.height(30.dp))
-        SignUpForm(onSignUpSubmit = onSignUpSubmit)
-        Spacer(modifier = Modifier.height(24.dp))
+
+        SignUpForm(
+            state = state,
+            onEvent = onEvent
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
         SignUpSocialFooter(onGoogleSignInClick = onGoogleSignInClick)
     }
 }
 
 @Composable
 fun SignUpForm(
-    onSignUpSubmit: (String, String, String) -> Unit,
+    state: SignUpState,
+    onEvent: (SignUpEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var address by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.Start
     ) {
         OutlinedTextField(
-            value = address,
-            onValueChange = { address = it },
-            label = { Text("Correo institucional") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Email,
-                    contentDescription = "Correo institucional"
-                )
-            },
+            value = state.email,
+            onValueChange = { onEvent(SignUpEvent.EmailChanged(it)) },
+            label = {Text("Correo institucional")},
+            leadingIcon = {Icon(Icons.Filled.Email, "Correo institucional")},
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -145,9 +170,9 @@ fun SignUpForm(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
+            value = state.password,
+            onValueChange = { onEvent(SignUpEvent.PasswordChanged(it)) },
+            label = {Text("Contraseña")},
             visualTransformation = PasswordVisualTransformation(),
             leadingIcon = {
                 Icon(
@@ -171,9 +196,9 @@ fun SignUpForm(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirmar contraseña") },
+            value = state.confirmPassword,
+            onValueChange = { onEvent(SignUpEvent.ConfirmPasswordChanged(it)) },
+            label = {Text("Confirmar contraseña")},
             visualTransformation = PasswordVisualTransformation(),
             leadingIcon = {
                 Icon(
@@ -198,7 +223,7 @@ fun SignUpForm(
 
         // Botón Principal
         Button(
-            onClick = { onSignUpSubmit(address, password, confirmPassword) },
+            onClick = { onEvent(SignUpEvent.SignUp) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -257,38 +282,80 @@ fun SignUpSocialFooter(onGoogleSignInClick: () -> Unit) {
 }
 
 @Composable
+fun ResultDialog(success: Boolean, message: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (success) "Registro exitoso" else "Error") },
+        text = { Text(message) },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF8A002B),
+                    contentColor = Color.White
+                )
+            ) {
+                Text("OK")
+            }
+        }
+    )
+}
+
+@Composable
 fun SignUpRoute(
     viewModel: SignUpViewModel,
     onRegisterSuccess: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    LaunchedEffect(state) {
-        if (state is SignUpState.Success) {
-            onRegisterSuccess()
-        }
-    }
 
     SignUpScreen(
-        onSignUpSubmit = { email, password, confirmPassword ->
-            viewModel.register(email, password, confirmPassword)
-        },
+        state = state,
+        onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
         onGoogleSignInClick = { }
     )
+
+    when (val status = state.status) {
+        is SignUpStatus.Error -> {
+            ResultDialog(
+                success = false,
+                message = status.message,
+                onDismiss = { viewModel.onEvent(SignUpEvent.DismissDialog) }
+            )
+        }
+        is SignUpStatus.Success -> {
+            ResultDialog(
+                success = true,
+                message = "Tu cuenta ha sido creada exitosamente.",
+                onDismiss = {
+                    viewModel.onEvent(SignUpEvent.DismissDialog)
+                    onRegisterSuccess()
+                }
+            )
+        }
+        SignUpStatus.Loading -> { }
+        SignUpStatus.Idle -> { }
+    }
 }
 
 @Preview(
     showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @Composable
 fun SignUpPreview() {
-    MarketUniversitarioTheme {
+    val fakeState = SignUpState(
+        email = "",
+        password = "",
+        confirmPassword = ""
+    )
+    MarketUniversitarioTheme() {
         SignUpScreen(
-            onSignUpSubmit = { _, _, _ -> },
+            state = fakeState,
+            onEvent = {},
             onGoogleSignInClick = {},
             onNavigateBack = {}
         )
     }
+
 }
