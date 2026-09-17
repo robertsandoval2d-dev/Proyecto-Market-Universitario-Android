@@ -3,16 +3,15 @@ package com.example.marketuniversitario.feature.auth.ui.screen
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -21,20 +20,19 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.marketuniversitario.R
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
+import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginEvent
 import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginState
+import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginStatus
 import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSubmit: (String, String) -> Unit,
+    state: LoginState,
+    onEvent: (LoginEvent) -> Unit,
     onNavigateBack: () -> Unit = {}
 ) {
-    // Variables de Firebase
-    var address by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
 
     Surface(
@@ -89,10 +87,10 @@ fun LoginScreen(
 
             // Campo de Correo
             OutlinedTextField(
-                value = address,
-                onValueChange = { address = it },
-                label = {
-                    Text("Correo institucional") },
+                value = state.email,
+                onValueChange = { onEvent(LoginEvent.EmailChanged(it)) },
+                label = { Text("Correo institucional") },
+                leadingIcon = { Icon(Icons.Filled.Email, "Correo institucional") },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -101,7 +99,8 @@ fun LoginScreen(
                 shape = MaterialTheme.shapes.small,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -109,9 +108,10 @@ fun LoginScreen(
 
             // Campo de Contraseña
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = state.password,
+                onValueChange = { onEvent(LoginEvent.PasswordChanged(it)) },
                 label = { Text("Contraseña") },
+                leadingIcon = { Icon(Icons.Filled.Lock, "Contraseña") },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Password,
@@ -121,7 +121,8 @@ fun LoginScreen(
                 shape = MaterialTheme.shapes.small,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -154,7 +155,7 @@ fun LoginScreen(
 
             // Botón Principal
             Button(
-                onClick = { onLoginSubmit(address, password) },
+                onClick = { onEvent(LoginEvent.Login) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -170,7 +171,7 @@ fun LoginScreen(
     }
 }
 
-// Lógica de navegación y Firebase (No modificar)
+// Lógica de navegación y Firebase
 @Composable
 fun LoginRoute(
     viewModel: LoginViewModel,
@@ -178,18 +179,31 @@ fun LoginRoute(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    LaunchedEffect(state) {
-        if (state is LoginState.Success) {
-            onLoginSuccess()
-        }
-    }
 
     LoginScreen(
-        onLoginSubmit = { address, password ->
-            viewModel.login(address, password)
-        },
+        state = state,
+        onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack
     )
+
+    when (val status = state.status) {
+        is LoginStatus.Error -> {
+
+            ResultDialog(
+                success = false,
+                message = status.message,
+                onDismiss = { viewModel.onEvent(LoginEvent.DismissDialog) }
+            )
+        }
+        is LoginStatus.Success -> {
+            LaunchedEffect(Unit) {
+                viewModel.onEvent(LoginEvent.DismissDialog)
+                onLoginSuccess()
+            }
+        }
+        LoginStatus.Loading -> { /* Opcional: Mostrar un CircularProgressIndicator */ }
+        LoginStatus.Idle -> { }
+    }
 }
 
 @Preview(
@@ -198,11 +212,11 @@ fun LoginRoute(
 )
 @Composable
 fun LoginPreview() {
-    MarketUniversitarioTheme(){
+    MarketUniversitarioTheme {
         LoginScreen(
-            onLoginSubmit = { _, _ -> },
+            state = LoginState(),
+            onEvent = {},
             onNavigateBack = {}
         )
     }
-
 }
