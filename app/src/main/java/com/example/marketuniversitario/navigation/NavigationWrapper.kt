@@ -13,6 +13,7 @@ import com.example.marketuniversitario.feature.auth.ui.screen.WelcomeScreen
 import com.example.marketuniversitario.feature.auth.ui.screen.LoginScreen
 import com.example.marketuniversitario.feature.auth.ui.screen.SignUpRoute
 import com.example.marketuniversitario.feature.splash.ui.screen.SplashScreen
+import com.example.marketuniversitario.feature.auth.ui.screen.ForgotPasswordRoute
 
 @Composable
 fun NavigationWrapper(
@@ -61,6 +62,18 @@ fun NavigationWrapper(
                         popUpTo ("welcome"){  inclusive = true }
                     }
                 },
+                onNavigateToForgotPassword = { // <--- NUEVO
+                    navHostController.navigate("forgot_password")
+                },
+                onNavigateBack = {
+                    navHostController.navigateUp()
+                }
+            )
+        }
+
+        composable("forgot_password") {
+            ForgotPasswordRoute(
+                viewModel = hiltViewModel(),
                 onNavigateBack = {
                     navHostController.navigateUp()
                 }

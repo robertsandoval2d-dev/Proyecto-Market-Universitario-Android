@@ -31,6 +31,7 @@ import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginViewModel
 fun LoginScreen(
     state: LoginState,
     onEvent: (LoginEvent) -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
     onNavigateBack: () -> Unit = {}
 ) {
     var rememberMe by remember { mutableStateOf(false) }
@@ -144,7 +145,7 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium)
                 }
-                TextButton(onClick = { /* TODO: Recuperar contraseña */ }) {
+                TextButton(onClick = onNavigateToForgotPassword) {
                     Text("¿Olvidaste tu contraseña?",
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyMedium)
@@ -176,6 +177,7 @@ fun LoginScreen(
 fun LoginRoute(
     viewModel: LoginViewModel,
     onLoginSuccess: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -183,6 +185,7 @@ fun LoginRoute(
     LoginScreen(
         state = state,
         onEvent = viewModel::onEvent,
+        onNavigateToForgotPassword = onNavigateToForgotPassword,
         onNavigateBack = onNavigateBack
     )
 
@@ -216,6 +219,7 @@ fun LoginPreview() {
         LoginScreen(
             state = LoginState(),
             onEvent = {},
+            onNavigateToForgotPassword = {},
             onNavigateBack = {}
         )
     }
