@@ -60,6 +60,9 @@ fun NavigationWrapper(
                     navHostController.navigate("inicio"){
                         popUpTo ("welcome"){  inclusive = true }
                     }
+                },
+                onNavigateBack = {
+                    navHostController.navigateUp()
                 }
             )
         }

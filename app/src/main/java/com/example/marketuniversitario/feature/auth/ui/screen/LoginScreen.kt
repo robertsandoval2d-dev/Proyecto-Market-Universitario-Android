@@ -1,5 +1,6 @@
 package com.example.marketuniversitario.feature.auth.ui.screen
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,15 +12,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.marketuniversitario.R
+import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
 import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginState
 import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginViewModel
 
@@ -33,51 +37,52 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
 
-    // Colores Institucionales
-    val guindaUNMSM = Color(0xFF8A002B)
-    val textoOscuro = Color(0xFF333333)
-
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.White
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 30.dp),
-            horizontalAlignment = Alignment.Start // Alineado a la izquierda según tu Figma
+                .systemBarsPadding()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 25.dp),
+                    .padding(vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onNavigateBack) {
+                IconButton(
+                    onClick = onNavigateBack
+                ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = textoOscuro
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Image(
                     painter = painterResource(id = R.drawable.logo_univpe),
                     contentDescription = "Logo UNIVPE",
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier
+                        .height(32.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(55.dp))
 
             // Título
             Text(
                 text = "Inicia sesión en\ntu cuenta",
-                fontSize = 36.sp,
+                style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = textoOscuro,
-                lineHeight = 40.sp
+                color = MaterialTheme.colorScheme.primary,
+                lineHeight = 40.sp,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -86,16 +91,17 @@ fun LoginScreen(
             OutlinedTextField(
                 value = address,
                 onValueChange = { address = it },
-                label = { Text("Correo institucional") },
+                label = {
+                    Text("Correo institucional") },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 ),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.small,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = guindaUNMSM,
-                    focusedLabelColor = guindaUNMSM
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -112,14 +118,14 @@ fun LoginScreen(
                     imeAction = ImeAction.Done
                 ),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.small,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = guindaUNMSM,
-                    focusedLabelColor = guindaUNMSM
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Recordarme y Olvidé mi contraseña
             Row(
@@ -131,28 +137,32 @@ fun LoginScreen(
                     Checkbox(
                         checked = rememberMe,
                         onCheckedChange = { rememberMe = it },
-                        colors = CheckboxDefaults.colors(checkedColor = guindaUNMSM)
+                        colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                     )
-                    Text("Recordarme", color = Color.Gray, fontSize = 14.sp)
+                    Text("Recordarme",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium)
                 }
                 TextButton(onClick = { /* TODO: Recuperar contraseña */ }) {
-                    Text("¿Olvidaste tu contraseña?", color = guindaUNMSM, fontSize = 14.sp)
+                    Text("¿Olvidaste tu contraseña?",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium)
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(35.dp))
 
             // Botón Principal
             Button(
                 onClick = { onLoginSubmit(address, password) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = guindaUNMSM,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = MaterialTheme.shapes.small
             ) {
                 Text(text = "Ingresar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
@@ -164,7 +174,8 @@ fun LoginScreen(
 @Composable
 fun LoginRoute(
     viewModel: LoginViewModel,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(state) {
@@ -176,6 +187,22 @@ fun LoginRoute(
     LoginScreen(
         onLoginSubmit = { address, password ->
             viewModel.login(address, password)
-        }
+        },
+        onNavigateBack = onNavigateBack
     )
+}
+
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun LoginPreview() {
+    MarketUniversitarioTheme(){
+        LoginScreen(
+            onLoginSubmit = { _, _ -> },
+            onNavigateBack = {}
+        )
+    }
+
 }

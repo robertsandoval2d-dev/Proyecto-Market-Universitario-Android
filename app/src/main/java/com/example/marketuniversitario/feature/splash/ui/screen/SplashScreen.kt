@@ -1,13 +1,18 @@
 package com.example.marketuniversitario.feature.splash.ui.screen
 
+import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -39,7 +44,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ){
         Column(
             modifier = Modifier.align(Alignment.Center),
@@ -50,9 +55,11 @@ fun SplashScreen(
                 contentDescription = stringResource(R.string.logo_univpe),
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .padding(bottom = 32.dp)
             )
-
+            Spacer(
+                modifier = Modifier
+                    .height(20.dp)
+            )
             Image(
                 painter = painterResource(R.drawable.icon_box),
                 contentDescription = stringResource(R.string.icono_caja),

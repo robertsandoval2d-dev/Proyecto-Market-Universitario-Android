@@ -1,40 +1,15 @@
 package com.example.marketuniversitario.feature.auth.ui.screen
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.marketuniversitario.R
+import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
 import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpState
 import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpViewModel
 
@@ -58,16 +34,17 @@ fun SignUpScreen(
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.White
+        color = MaterialTheme.colorScheme.background // Adaptable a Modo Oscuro
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 30.dp),
+                .systemBarsPadding() // Evita que colisione con la barra superior
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.Start
         ) {
             SignUpTopBar(onNavigateBack = onNavigateBack)
-            SignUpLayout (
+            SignUpLayout(
                 onSignUpSubmit = onSignUpSubmit,
                 onGoogleSignInClick = onGoogleSignInClick
             )
@@ -79,25 +56,25 @@ fun SignUpScreen(
 fun SignUpTopBar(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
-){
-    // Header
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 25.dp),
+            .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onNavigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver"
+                contentDescription = "Volver",
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Image(
             painter = painterResource(id = R.drawable.logo_univpe),
             contentDescription = "Logo UNIVPE",
-            modifier = Modifier.height(32.dp)
+            modifier = Modifier.height(30.dp)
         )
     }
 }
@@ -114,16 +91,17 @@ fun SignUpLayout(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "Crea tu cuenta",
-            fontSize = 36.sp,
+            style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
             lineHeight = 40.sp
         )
         Spacer(modifier = Modifier.height(30.dp))
         SignUpForm(onSignUpSubmit = onSignUpSubmit)
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         SignUpSocialFooter(onGoogleSignInClick = onGoogleSignInClick)
     }
 }
@@ -132,10 +110,11 @@ fun SignUpLayout(
 fun SignUpForm(
     onSignUpSubmit: (String, String, String) -> Unit,
     modifier: Modifier = Modifier
-){
+) {
     var address by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.Start
@@ -143,85 +122,91 @@ fun SignUpForm(
         OutlinedTextField(
             value = address,
             onValueChange = { address = it },
-            label = {Text("Correo institucional")},
-            leadingIcon = {Icon(
-                imageVector = Icons.Filled.Email,
-                contentDescription = "Correo institucional"
-            )},
+            label = { Text("Correo institucional") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Email,
+                    contentDescription = "Correo institucional"
+                )
+            },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.small, // Unificado con el Theme
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF8A002B),
-                focusedLabelColor = Color(0xFF8A002B),
-                focusedLeadingIconColor = Color(0xFF8A002B)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.primary
             )
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = {Text("Contraseña")},
+            label = { Text("Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
-            leadingIcon = {Icon(
-                imageVector = Icons.Filled.Lock,
-                contentDescription = "Contraseña"
-            )},
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Lock,
+                    contentDescription = "Contraseña"
+                )
+            },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
             ),
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.small,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF8A002B),
-                focusedLabelColor = Color(0xFF8A002B),
-                focusedLeadingIconColor = Color(0xFF8A002B)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.primary
             )
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            label = {Text("Confirmar contraseña")},
+            label = { Text("Confirmar contraseña") },
             visualTransformation = PasswordVisualTransformation(),
-            leadingIcon = {Icon(
-                imageVector = Icons.Filled.Lock,
-                contentDescription = "Confirmar contraseña"
-            )},
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Lock,
+                    contentDescription = "Confirmar contraseña"
+                )
+            },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
             ),
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.small,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF8A002B),
-                focusedLabelColor = Color(0xFF8A002B),
-                focusedLeadingIconColor = Color(0xFF8A002B)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.primary
             )
         )
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Botón Principal
         Button(
-            onClick = { onSignUpSubmit(address,password,confirmPassword) },
+            onClick = { onSignUpSubmit(address, password, confirmPassword) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(52.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF8A002B),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ),
-            shape = RoundedCornerShape(12.dp)
+            shape = MaterialTheme.shapes.small
         ) {
             Text(text = "Registrar Cuenta", fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
@@ -232,27 +217,35 @@ fun SignUpForm(
 fun SignUpSocialFooter(onGoogleSignInClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         // Separador "O continuar con"
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray.copy(alpha = 0.5f))
             Text(
-                text = "O continuar con",
-                color = Color.Gray,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                text = "  O continuar con  ",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray.copy(alpha = 0.5f))
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Botón de Google
+        // Botón de Google centrado
         OutlinedButton(
             onClick = onGoogleSignInClick,
-            modifier = Modifier.size(60.dp),
-            contentPadding = PaddingValues(0.dp)
+            modifier = Modifier
+                .size(52.dp),
+            contentPadding = PaddingValues(0.dp),
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_google),
@@ -283,18 +276,19 @@ fun SignUpRoute(
         onNavigateBack = onNavigateBack,
         onGoogleSignInClick = { }
     )
-
 }
 
-@Preview
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
 @Composable
 fun SignUpPreview() {
-    val string: String = ""
-    val string2: String = ""
-    val string3: String = ""
-    SignUpScreen(
-        onSignUpSubmit = {string, string2, string3 ->} ,
-        onGoogleSignInClick = {},
-        onNavigateBack = {}
-    )
+    MarketUniversitarioTheme {
+        SignUpScreen(
+            onSignUpSubmit = { _, _, _ -> },
+            onGoogleSignInClick = {},
+            onNavigateBack = {}
+        )
+    }
 }
