@@ -12,6 +12,7 @@ import com.example.marketuniversitario.feature.auth.ui.screen.LoginRoute
 import com.example.marketuniversitario.feature.auth.ui.screen.WelcomeScreen
 import com.example.marketuniversitario.feature.auth.ui.screen.LoginScreen
 import com.example.marketuniversitario.feature.auth.ui.screen.SignUpRoute
+import com.example.marketuniversitario.feature.auth.ui.screen.WelcomeRoute
 import com.example.marketuniversitario.feature.splash.ui.screen.SplashScreen
 import com.example.marketuniversitario.feature.auth.ui.screen.ForgotPasswordRoute
 
@@ -31,12 +32,18 @@ fun NavigationWrapper(
         }
 
         composable ("welcome") {
-            WelcomeScreen(
+            WelcomeRoute(
+                viewModel = hiltViewModel(),
                 onNavigateToLoginScreen = {
                     navHostController.navigate("login")
                 },
                 onNavigateToSignUpScreen = {
                     navHostController.navigate("signup")
+                },
+                onLoginSuccess = {
+                    navHostController.navigate("inicio") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
                 }
             )
         }
@@ -49,6 +56,11 @@ fun NavigationWrapper(
                 },
                 onNavigateBack = {
                     navHostController.navigateUp()
+                },
+                onNavigateHome = {
+                    navHostController.navigate("inicio"){
+                        popUpTo("welcome"){  inclusive = true }
+                    }
                 }
             )
         }

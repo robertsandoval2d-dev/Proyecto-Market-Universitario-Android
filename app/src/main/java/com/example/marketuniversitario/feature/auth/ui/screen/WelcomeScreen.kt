@@ -1,28 +1,36 @@
 package com.example.marketuniversitario.feature.auth.ui.screen
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.marketuniversitario.R
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
+import com.example.marketuniversitario.feature.auth.ui.viewmodel.WelcomeState
+import com.example.marketuniversitario.feature.auth.ui.viewmodel.WelcomeStatus
+import com.example.marketuniversitario.feature.auth.ui.viewmodel.WelcomeViewModel
 
 @Composable
 fun WelcomeScreen(
+    state: WelcomeState,
     onNavigateToLoginScreen: () -> Unit,
-    onNavigateToSignUpScreen: () -> Unit
+    onNavigateToSignUpScreen: () -> Unit,
+    onGoogleSignInClick : () -> Unit,
+    onDialogDismiss : () -> Unit
 ) {
-    // Surface asegura que el fondo sea 100% blanco puro
     Surface(
         modifier = Modifier
             .fillMaxSize(),
@@ -66,7 +74,8 @@ fun WelcomeScreen(
 
             // Botón de Google (Outlined)
             OutlinedButton(
-                onClick = { /* Lógica futura de Google */ },
+                onClick = onGoogleSignInClick,
+                enabled = state.status !is WelcomeStatus.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -76,6 +85,10 @@ fun WelcomeScreen(
                 ),
                 shape = MaterialTheme.shapes.small
             ) {
+                //Dialog
+                if (state.status is WelcomeStatus.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                } else {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_google),
                     contentDescription = "Google",
@@ -84,11 +97,11 @@ fun WelcomeScreen(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Continue with Google",
+                    text = "Continuar con Google",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium)
+                }
             }
-
             Spacer(modifier = Modifier.height(40.dp))
 
             // Texto "or"
@@ -109,7 +122,7 @@ fun WelcomeScreen(
 
             // Botón de Inicio de Sesión
             Button(
-                onClick = onNavigateToLoginScreen, // Función exacta de tus compañeros
+                onClick = onNavigateToLoginScreen,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -150,18 +163,56 @@ fun WelcomeScreen(
             }
         }
     }
+
+    val status = state.status
+    if (status is WelcomeStatus.Error) {
+        AlertDialog(
+            onDismissRequest = onDialogDismiss,
+            confirmButton = { TextButton(onClick = onDialogDismiss) { Text("OK") } },
+            title = { Text("Error") },
+            text = { Text(status.message) }
+        )
+    }
 }
+
+@Composable
+fun WelcomeRoute(
+    viewModel: WelcomeViewModel,
+    onNavigateToLoginScreen: () -> Unit,
+    onNavigateToSignUpScreen: () -> Unit,
+    onLoginSuccess: () -> Unit
+){
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    WelcomeScreen(
+        state = state,
+        onNavigateToLoginScreen = onNavigateToLoginScreen,
+        onNavigateToSignUpScreen = onNavigateToSignUpScreen,
+        onGoogleSignInClick = { viewModel.onGoogleSignInClick(context) },
+        onDialogDismiss = viewModel::onDialogDismiss
+    )
+    LaunchedEffect(state.status) {
+        if (state.status is WelcomeStatus.Success) {
+            onLoginSuccess()
+        }
+    }
+}
+
 
 @Preview(
     showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_NO
 )
 @Composable
 fun WelcomeScreenPreview() {
     MarketUniversitarioTheme() {
     WelcomeScreen(
         onNavigateToLoginScreen = {},
-        onNavigateToSignUpScreen = {}
+        onNavigateToSignUpScreen = {},
+        onGoogleSignInClick = {},
+        onDialogDismiss = {},
+        state = WelcomeState()
     )
     }
 }

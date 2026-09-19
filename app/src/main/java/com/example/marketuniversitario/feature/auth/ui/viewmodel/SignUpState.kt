@@ -1,9 +1,11 @@
 package com.example.marketuniversitario.feature.auth.ui.viewmodel
 
+import android.content.Context
+
 sealed interface SignUpStatus {
     object Idle: SignUpStatus
     object Loading: SignUpStatus
-    object Success: SignUpStatus
+    data class Success(val isEmailVerified: Boolean) : SignUpStatus
     data class Error(val message: String): SignUpStatus
 }
 
@@ -19,5 +21,7 @@ sealed interface SignUpEvent {
     data class PasswordChanged(val password: String) : SignUpEvent
     data class ConfirmPasswordChanged(val confirmPassword: String) : SignUpEvent
     object SignUp : SignUpEvent
+
+    data class GoogleSignIn(val context: Context) : SignUpEvent
     object DismissDialog : SignUpEvent
 }

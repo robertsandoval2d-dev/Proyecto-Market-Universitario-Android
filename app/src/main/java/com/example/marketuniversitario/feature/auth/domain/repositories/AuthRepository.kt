@@ -1,9 +1,12 @@
 package com.example.marketuniversitario.feature.auth.domain.repositories
 
+import com.example.marketuniversitario.feature.auth.domain.entities.UserSession
+
 interface AuthRepository {
-    suspend fun loginWithEmail(email: String, password: String): Result<Unit>
+    suspend fun loginWithEmail(email: String, password: String): Result<UserSession>
+    suspend fun signInWithGoogleToken(idToken: String): Result<UserSession>
     fun isUserLoggedIn(): Boolean
-    suspend fun register(email: String, password: String): Result<Boolean>
+    suspend fun register(email: String, password: String): Result<UserSession>
     suspend fun sendEmailVerification(): Result<Boolean>
     fun isEmailVerified(): Boolean
 

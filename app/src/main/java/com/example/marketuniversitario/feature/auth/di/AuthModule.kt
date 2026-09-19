@@ -34,6 +34,8 @@ object AuthModule {
 }*/
 
 
+import android.content.Context
+import com.example.marketuniversitario.feature.auth.data.datasources.GoogleAuthDataSource
 import com.example.marketuniversitario.feature.auth.data.repositories.AuthRepositoryImpl
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
@@ -41,6 +43,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -62,4 +65,5 @@ abstract class AuthModule {
             return FirebaseAuth.getInstance()
         }
     }
+
 }

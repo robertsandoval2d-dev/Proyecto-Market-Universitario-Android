@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -55,7 +56,6 @@ import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpViewModel
 fun SignUpScreen(
     state: SignUpState,
     onEvent: (SignUpEvent) -> Unit,
-    onGoogleSignInClick: () -> Unit,
     onNavigateBack: () -> Unit = {}
 ) {
     Surface(
@@ -72,8 +72,7 @@ fun SignUpScreen(
             SignUpTopBar(onNavigateBack = onNavigateBack)
             SignUpLayout (
                 state = state,
-                onEvent = onEvent,
-                onGoogleSignInClick = onGoogleSignInClick
+                onEvent = onEvent
             )
         }
     }
@@ -110,7 +109,6 @@ fun SignUpTopBar(
 fun SignUpLayout(
     state: SignUpState,
     onEvent: (SignUpEvent) -> Unit,
-    onGoogleSignInClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -135,7 +133,7 @@ fun SignUpLayout(
         )
 
         Spacer(modifier = Modifier.height(30.dp))
-        SignUpSocialFooter(onGoogleSignInClick = onGoogleSignInClick)
+        SignUpSocialFooter( onEvent = onEvent)
     }
 }
 
@@ -239,7 +237,10 @@ fun SignUpForm(
 }
 
 @Composable
-fun SignUpSocialFooter(onGoogleSignInClick: () -> Unit) {
+fun SignUpSocialFooter(
+    onEvent: (SignUpEvent) -> Unit,
+) {
+    val context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
@@ -262,7 +263,7 @@ fun SignUpSocialFooter(onGoogleSignInClick: () -> Unit) {
 
         // Botón de Google centrado
         OutlinedButton(
-            onClick = onGoogleSignInClick,
+            onClick = { onEvent(SignUpEvent.GoogleSignIn(context)) },
             modifier = Modifier
                 .size(52.dp),
             contentPadding = PaddingValues(0.dp),
@@ -304,7 +305,8 @@ fun ResultDialog(success: Boolean, message: String, onDismiss: () -> Unit) {
 @Composable
 fun SignUpRoute(
     viewModel: SignUpViewModel,
-    onRegisterSuccess: () -> Unit,
+    onRegisterSuccess: () -> Unit, //Para cuandro requiera verificación con correo
+    onNavigateHome: () -> Unit ,
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -312,8 +314,7 @@ fun SignUpRoute(
     SignUpScreen(
         state = state,
         onEvent = viewModel::onEvent,
-        onNavigateBack = onNavigateBack,
-        onGoogleSignInClick = { }
+        onNavigateBack = onNavigateBack
     )
 
     when (val status = state.status) {
@@ -327,10 +328,18 @@ fun SignUpRoute(
         is SignUpStatus.Success -> {
             ResultDialog(
                 success = true,
-                message = "Tu cuenta ha sido creada exitosamente.",
+                message = if (status.isEmailVerified) {
+                    "Tu cuenta ha sido creada exitosamente."
+                } else {
+                    "Cuenta creada. Revisa tu correo institucional para verificar tu cuenta antes de iniciar sesión."
+                },
                 onDismiss = {
                     viewModel.onEvent(SignUpEvent.DismissDialog)
-                    onRegisterSuccess()
+                    if (status.isEmailVerified) {
+                        onNavigateHome()
+                    } else {
+                        onRegisterSuccess()
+                    }
                 }
             )
         }
@@ -353,7 +362,6 @@ fun SignUpPreview() {
         SignUpScreen(
             state = fakeState,
             onEvent = {},
-            onGoogleSignInClick = {},
             onNavigateBack = {}
         )
     }

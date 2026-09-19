@@ -53,12 +53,14 @@ fun SplashScreen(
             Image(
                 painter = painterResource(R.drawable.logo_univpe),
                 contentDescription = stringResource(R.string.logo_univpe),
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
+                    .size(65.dp)
             )
             Spacer(
                 modifier = Modifier
-                    .height(20.dp)
+                    .height(25.dp)
             )
             Image(
                 painter = painterResource(R.drawable.icon_box),

@@ -1,7 +1,9 @@
 package com.example.marketuniversitario.feature.auth.data.repositories
 
+import com.example.marketuniversitario.feature.auth.domain.entities.UserSession
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -9,19 +11,49 @@ class AuthRepositoryImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth
 ) : AuthRepository {
 
-    override suspend fun loginWithEmail(email: String, password: String): Result<Unit> {
+    override suspend fun loginWithEmail(email: String, password: String): Result<UserSession> {
         return try {
-            firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            Result.success(Unit)
+            val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+            val user = authResult.user ?: return Result.failure(Exception("No user"))
+            Result.success(UserSession(
+                uid = user.uid,
+                email = user.email.orEmpty(),
+                displayName = user.displayName,
+                isEmailVerified = user.isEmailVerified
+            ))
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun register(email: String, password: String): Result<Boolean> {
+    //Logeo o registro con cuenta de Google
+    override suspend fun signInWithGoogleToken(idToken: String): Result<UserSession> {
         return try {
-            firebaseAuth.createUserWithEmailAndPassword(email,password).await()
-            Result.success(true)
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            val authResult = firebaseAuth.signInWithCredential(credential).await()
+            val user = authResult.user ?: return Result.failure(Exception("No user"))
+
+            Result.success(UserSession(
+                uid = user.uid,
+                email = user.email.orEmpty(),
+                displayName = user.displayName,
+                isEmailVerified = user.isEmailVerified
+            ))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun register(email: String, password: String): Result<UserSession> {
+        return try {
+            val authResult = firebaseAuth.createUserWithEmailAndPassword(email,password).await()
+            val user = authResult.user ?: return Result.failure(Exception("No user"))
+            Result.success(UserSession(
+                uid = user.uid,
+                email = user.email.orEmpty(),
+                displayName = user.displayName,
+                isEmailVerified = user.isEmailVerified
+            ))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -56,4 +88,5 @@ class AuthRepositoryImpl @Inject constructor(
     override fun logout() {
         firebaseAuth.signOut()
     }
+
 }
