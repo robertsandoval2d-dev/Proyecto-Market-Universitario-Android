@@ -22,6 +22,6 @@ sealed interface SignUpEvent {
     data class ConfirmPasswordChanged(val confirmPassword: String) : SignUpEvent
     object SignUp : SignUpEvent
 
-    data class GoogleSignIn(val context: Context) : SignUpEvent
+    data class GoogleSignIn(val idToken: String) : SignUpEvent
     object DismissDialog : SignUpEvent
 }

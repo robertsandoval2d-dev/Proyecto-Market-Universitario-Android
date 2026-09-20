@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.marketuniversitario.R
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
+import com.example.marketuniversitario.feature.auth.ui.util.GoogleSignInLauncher
+import kotlinx.coroutines.launch
 
 @Composable
 fun WelcomeScreen(
@@ -180,12 +184,30 @@ fun WelcomeRoute(
 ){
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val googleSignInLauncher = remember {
+        GoogleSignInLauncher()
+    }
 
     WelcomeScreen(
         state = state,
         onNavigateToLoginScreen = onNavigateToLoginScreen,
         onNavigateToSignUpScreen = onNavigateToSignUpScreen,
-        onGoogleSignInClick = { viewModel.onGoogleSignInClick(context) },
+        onGoogleSignInClick = {
+            if (state.status !is WelcomeStatus.Loading) {
+                scope.launch {
+                    googleSignInLauncher
+                        .getIdToken(context)
+                        .onSuccess { idToken ->
+                            viewModel.onGoogleSignInClick(idToken)
+                        }
+                        .onFailure { exception ->
+                            viewModel.onGoogleSignInError(exception)
+                        }
+                }
+            }
+                              },
         onDialogDismiss = viewModel::onDialogDismiss
     )
     LaunchedEffect(state.status) {

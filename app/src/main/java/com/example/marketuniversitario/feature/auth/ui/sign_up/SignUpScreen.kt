@@ -2,6 +2,7 @@ package com.example.marketuniversitario.feature.auth.ui.sign_up
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +35,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,8 +49,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.marketuniversitario.R
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
+import com.example.marketuniversitario.feature.auth.ui.util.GoogleSignInLauncher
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignUpScreen(
@@ -68,7 +75,8 @@ fun SignUpScreen(
             SignUpTopBar(onNavigateBack = onNavigateBack)
             SignUpLayout (
                 state = state,
-                onEvent = onEvent
+                onEvent = onEvent,
+                onGoogleSignInClick = { onEvent(SignUpEvent.GoogleSignIn("")) }
             )
         }
     }
@@ -105,6 +113,7 @@ fun SignUpTopBar(
 fun SignUpLayout(
     state: SignUpState,
     onEvent: (SignUpEvent) -> Unit,
+    onGoogleSignInClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -129,7 +138,9 @@ fun SignUpLayout(
         )
 
         Spacer(modifier = Modifier.height(30.dp))
-        SignUpSocialFooter( onEvent = onEvent)
+        SignUpSocialFooter(
+            onGoogleSignInClick = onGoogleSignInClick,
+            enabled = state.status !is SignUpStatus.Loading)
     }
 }
 
@@ -234,7 +245,8 @@ fun SignUpForm(
 
 @Composable
 fun SignUpSocialFooter(
-    onEvent: (SignUpEvent) -> Unit,
+    onGoogleSignInClick: () -> Unit,
+    enabled: Boolean
 ) {
     val context = LocalContext.current
     Column(
@@ -259,7 +271,8 @@ fun SignUpSocialFooter(
 
         // Botón de Google centrado
         OutlinedButton(
-            onClick = { onEvent(SignUpEvent.GoogleSignIn(context)) },
+            onClick =  onGoogleSignInClick ,
+            enabled = enabled,
             modifier = Modifier
                 .size(52.dp),
             contentPadding = PaddingValues(0.dp),
@@ -299,6 +312,27 @@ fun ResultDialog(success: Boolean, message: String, onDismiss: () -> Unit) {
 }
 
 @Composable
+fun LoadingDialog() {
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = { },
+        properties = androidx.compose.ui.window.DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        )
+    ) {
+        Surface(
+             modifier = Modifier.size(100.dp),
+            shape = MaterialTheme.shapes.medium,
+             color = MaterialTheme.colorScheme.surface
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+}
+
+@Composable
 fun SignUpRoute(
     viewModel: SignUpViewModel,
     onRegisterSuccess: () -> Unit, //Para cuandro requiera verificación con correo
@@ -306,10 +340,25 @@ fun SignUpRoute(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val googleSignInLauncher = remember {
+        GoogleSignInLauncher()
+    }
 
     SignUpScreen(
         state = state,
-        onEvent = viewModel::onEvent,
+        onEvent = { event ->
+            if (event is SignUpEvent.GoogleSignIn) {
+                scope.launch {
+                    googleSignInLauncher.getIdToken(context)
+                        .onSuccess { token -> viewModel.onEvent(SignUpEvent.GoogleSignIn(token)) }
+                        .onFailure { error -> viewModel.onGoogleSignInError(error) }
+                    }
+                } else {
+                    viewModel.onEvent(event)
+                }
+            },
         onNavigateBack = onNavigateBack
     )
 
@@ -339,7 +388,7 @@ fun SignUpRoute(
                 }
             )
         }
-        SignUpStatus.Loading -> { }
+        SignUpStatus.Loading -> { LoadingDialog() }
         SignUpStatus.Idle -> { }
     }
 }

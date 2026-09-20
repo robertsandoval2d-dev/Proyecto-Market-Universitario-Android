@@ -9,8 +9,8 @@ import com.example.marketuniversitario.Greeting
 import com.example.marketuniversitario.feature.auth.ui.login.LoginRoute
 import com.example.marketuniversitario.feature.auth.ui.sign_up.SignUpRoute
 import com.example.marketuniversitario.feature.auth.ui.welcome.WelcomeRoute
-import com.example.marketuniversitario.feature.splash.ui.screen.SplashScreen
 import com.example.marketuniversitario.feature.auth.ui.forgot_password.ForgotPasswordRoute
+import com.example.marketuniversitario.feature.splash.ui.SplashRoute
 
 @Composable
 fun NavigationWrapper(
@@ -18,9 +18,10 @@ fun NavigationWrapper(
 ){
     NavHost(navController = navHostController, startDestination = "splash") {
         composable("splash") {
-            SplashScreen (
-                onSplashFinished = {
-                    navHostController.navigate("welcome") {
+            SplashRoute (
+                viewModel = hiltViewModel(),
+                onNavigate  = { destination ->
+                    navHostController.navigate(destination) {
                         popUpTo("splash") { inclusive = true }
                     }
                 }

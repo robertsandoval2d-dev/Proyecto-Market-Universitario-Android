@@ -3,7 +3,6 @@ package com.example.marketuniversitario.feature.auth.ui.sign_up
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marketuniversitario.feature.auth.data.datasources.GoogleAuthDataSource
 import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignInWithGoogleUseCase
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignUpUseCase
@@ -16,7 +15,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val googleAuthDataSource: GoogleAuthDataSource,
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
     private val signUpUseCase: SignUpUseCase
 ) : ViewModel() {
@@ -30,7 +28,7 @@ class SignUpViewModel @Inject constructor(
             is SignUpEvent.PasswordChanged -> _state.update { it.copy(password = event.password) }
             is SignUpEvent.ConfirmPasswordChanged -> _state.update { it.copy(confirmPassword = event.confirmPassword) }
             is SignUpEvent.SignUp -> register()
-            is SignUpEvent.GoogleSignIn -> signInWithGoogle(event.context)
+            is SignUpEvent.GoogleSignIn -> signInWithGoogle(event.idToken)
             is SignUpEvent.DismissDialog -> _state.update { it.copy(status = SignUpStatus.Idle) }
         }
     }
@@ -59,30 +57,44 @@ class SignUpViewModel @Inject constructor(
                     _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified)) }
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(status = SignUpStatus.Error(error.localizedMessage ?: "Error al registrar")) }
+                    _state.update {
+                        it.copy(
+                            status = SignUpStatus.Error(
+                                error.localizedMessage ?: "Error al registrar"
+                            )
+                        )
+                    }
                 }
         }
     }
 
-    private fun signInWithGoogle(context: Context) {
+    private fun signInWithGoogle(idToken: String) {
         viewModelScope.launch {
             _state.update { it.copy(status = SignUpStatus.Loading) }
 
-            googleAuthDataSource.getGoogleIdToken(context)
-                .onSuccess { idToken ->
-                    signInWithGoogleUseCase(idToken)
-                        .onSuccess { session -> _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified)) } }
-                        .onFailure { e -> _state.update { it.copy(status = SignUpStatus.Error(e.message ?: "Error al registrarse")) } }
+            signInWithGoogleUseCase(idToken)
+                .onSuccess { session ->
+                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified)) }
                 }
                 .onFailure { e ->
-                    val newStatus = if (e is AuthException.UserCancelled) {
-                        SignUpStatus.Idle
-                    } else {
-                        SignUpStatus.Error(e.message ?: "Error al obtener credenciales")
+                    _state.update {
+                        it.copy(
+                            status = SignUpStatus.Error(
+                                e.message ?: "Error al registrarse"
+                            )
+                        )
                     }
-                    _state.update { it.copy(status = newStatus) }
                 }
+
         }
     }
 
+    fun onGoogleSignInError(exception: Throwable) {
+        val newStatus = if (exception is AuthException.UserCancelled) {
+            SignUpStatus.Idle
+        } else {
+            SignUpStatus.Error(exception.message ?: "Error al obtener credenciales")
+        }
+        _state.update { it.copy(status = newStatus) }
+    }
 }

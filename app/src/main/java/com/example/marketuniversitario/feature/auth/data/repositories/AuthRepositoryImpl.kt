@@ -86,6 +86,16 @@ class AuthRepositoryImpl @Inject constructor(
         return firebaseAuth.currentUser?.isEmailVerified == true
     }
 
+    override suspend fun reloadUser(): Result<Unit> {
+        return try {
+            firebaseAuth.currentUser?.reload()?.await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
     override fun logout() {
         firebaseAuth.signOut()
     }

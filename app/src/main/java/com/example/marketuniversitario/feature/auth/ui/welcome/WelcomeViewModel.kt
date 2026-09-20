@@ -3,7 +3,6 @@ package com.example.marketuniversitario.feature.auth.ui.welcome
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marketuniversitario.feature.auth.data.datasources.GoogleAuthDataSource
 import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignInWithGoogleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,37 +14,32 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
-    private val googleAuthDataSource: GoogleAuthDataSource,
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(WelcomeState())
     val state = _state.asStateFlow()
 
-    fun onGoogleSignInClick(context: Context) {
+    fun onGoogleSignInClick(idToken: String) {
         viewModelScope.launch {
             _state.update { it.copy(status = WelcomeStatus.Loading) }
 
-            googleAuthDataSource.getGoogleIdToken(context)
-                .onSuccess { idToken ->
-                    signInWithGoogleUseCase(idToken)
-                        .onSuccess { _ ->
-                            _state.update { it.copy(status = WelcomeStatus.Success) }
-                        }
-                        .onFailure { e ->
-                            _state.update { it.copy(status = WelcomeStatus.Error(e.message ?: "Error al iniciar sesión")) }
-                        }
+            signInWithGoogleUseCase(idToken)
+                .onSuccess { _ ->
+                    _state.update { it.copy(status = WelcomeStatus.Success) }
                 }
                 .onFailure { e ->
-                    if (e is AuthException.UserCancelled){
-                        _state.update { it.copy(status = WelcomeStatus.Idle) }
-                    } else {
-                        _state.update {
-                            it.copy(status = WelcomeStatus.Error(e.message ?: "Error al obtener credenciales"))
-                        }
-                    }
+                    _state.update { it.copy(status = WelcomeStatus.Error(e.message ?: "Error al iniciar sesión")) }
                 }
-
         }
+    }
+
+    fun onGoogleSignInError(exception: Throwable) {
+        val newStatus = if (exception is AuthException.UserCancelled) {
+            WelcomeStatus.Idle
+        } else {
+            WelcomeStatus.Error(exception.message ?: "Error al obtener credenciales")
+        }
+        _state.update { it.copy(status = newStatus) }
     }
 
     fun onDialogDismiss() {
