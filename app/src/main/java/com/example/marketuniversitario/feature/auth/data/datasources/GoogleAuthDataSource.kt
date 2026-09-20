@@ -5,7 +5,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
-import com.example.marketuniversitario.feature.auth.domain.exceptions.UserCancelledException
+import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -29,7 +29,7 @@ class GoogleAuthDataSource @Inject constructor(){
 
             Result.success(googleCredential.idToken)
         } catch (e: GetCredentialCancellationException) {
-            Result.failure(UserCancelledException())
+            Result.failure(AuthException.UserCancelled)
         } catch (e: GetCredentialException) {
             Result.failure(e)
         } catch (e: GoogleIdTokenParsingException) {

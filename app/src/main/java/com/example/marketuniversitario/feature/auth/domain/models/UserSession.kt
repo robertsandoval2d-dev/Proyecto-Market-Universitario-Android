@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.auth.domain.entities
+package com.example.marketuniversitario.feature.auth.domain.models
 
 data class UserSession(
     val uid: String,

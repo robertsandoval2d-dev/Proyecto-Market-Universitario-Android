@@ -1,6 +1,6 @@
 package com.example.marketuniversitario.feature.auth.domain.repositories
 
-import com.example.marketuniversitario.feature.auth.domain.entities.UserSession
+import com.example.marketuniversitario.feature.auth.domain.models.UserSession
 
 interface AuthRepository {
     suspend fun loginWithEmail(email: String, password: String): Result<UserSession>

@@ -1,10 +1,10 @@
-package com.example.marketuniversitario.feature.auth.ui.viewmodel
+package com.example.marketuniversitario.feature.auth.ui.welcome
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.data.datasources.GoogleAuthDataSource
-import com.example.marketuniversitario.feature.auth.domain.exceptions.UserCancelledException
+import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignInWithGoogleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +36,7 @@ class WelcomeViewModel @Inject constructor(
                         }
                 }
                 .onFailure { e ->
-                    if (e is UserCancelledException){
+                    if (e is AuthException.UserCancelled){
                         _state.update { it.copy(status = WelcomeStatus.Idle) }
                     } else {
                         _state.update {

@@ -1,10 +1,10 @@
-package com.example.marketuniversitario.feature.auth.ui.viewmodel
+package com.example.marketuniversitario.feature.auth.ui.sign_up
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.data.datasources.GoogleAuthDataSource
-import com.example.marketuniversitario.feature.auth.domain.exceptions.UserCancelledException
+import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignInWithGoogleUseCase
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -75,7 +75,7 @@ class SignUpViewModel @Inject constructor(
                         .onFailure { e -> _state.update { it.copy(status = SignUpStatus.Error(e.message ?: "Error al registrarse")) } }
                 }
                 .onFailure { e ->
-                    val newStatus = if (e is UserCancelledException) {
+                    val newStatus = if (e is AuthException.UserCancelled) {
                         SignUpStatus.Idle
                     } else {
                         SignUpStatus.Error(e.message ?: "Error al obtener credenciales")

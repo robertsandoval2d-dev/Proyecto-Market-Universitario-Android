@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.auth.ui.viewmodel
+package com.example.marketuniversitario.feature.auth.ui.welcome
 
 sealed interface WelcomeStatus {
     object Idle: WelcomeStatus

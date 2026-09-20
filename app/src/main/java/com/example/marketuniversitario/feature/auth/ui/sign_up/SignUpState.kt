@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.auth.ui.viewmodel
+package com.example.marketuniversitario.feature.auth.ui.sign_up
 
 import android.content.Context
 

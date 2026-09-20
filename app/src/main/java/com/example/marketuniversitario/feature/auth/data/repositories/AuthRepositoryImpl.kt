@@ -1,6 +1,7 @@
 package com.example.marketuniversitario.feature.auth.data.repositories
 
-import com.example.marketuniversitario.feature.auth.domain.entities.UserSession
+import com.example.marketuniversitario.feature.auth.data.mapper.AuthErrorMapper
+import com.example.marketuniversitario.feature.auth.domain.models.UserSession
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
@@ -14,7 +15,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun loginWithEmail(email: String, password: String): Result<UserSession> {
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            val user = authResult.user ?: return Result.failure(Exception("No user"))
+            val user = authResult.user ?: return Result.failure(Exception("No se encontró información del usuario."))
             Result.success(UserSession(
                 uid = user.uid,
                 email = user.email.orEmpty(),
@@ -22,7 +23,7 @@ class AuthRepositoryImpl @Inject constructor(
                 isEmailVerified = user.isEmailVerified
             ))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(AuthErrorMapper.map(e))
         }
     }
 
@@ -31,7 +32,7 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val authResult = firebaseAuth.signInWithCredential(credential).await()
-            val user = authResult.user ?: return Result.failure(Exception("No user"))
+            val user = authResult.user ?: return Result.failure(Exception("No se encontró información del usuario."))
 
             Result.success(UserSession(
                 uid = user.uid,
@@ -40,14 +41,14 @@ class AuthRepositoryImpl @Inject constructor(
                 isEmailVerified = user.isEmailVerified
             ))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(AuthErrorMapper.map(e))
         }
     }
 
     override suspend fun register(email: String, password: String): Result<UserSession> {
         return try {
-            val authResult = firebaseAuth.createUserWithEmailAndPassword(email,password).await()
-            val user = authResult.user ?: return Result.failure(Exception("No user"))
+            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            val user = authResult.user ?: return Result.failure(Exception("No se encontró información del usuario."))
             Result.success(UserSession(
                 uid = user.uid,
                 email = user.email.orEmpty(),
@@ -55,16 +56,16 @@ class AuthRepositoryImpl @Inject constructor(
                 isEmailVerified = user.isEmailVerified
             ))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(AuthErrorMapper.map(e))
         }
     }
 
     override suspend fun sendEmailVerification(): Result<Boolean> {
-        return try{
+        return try {
             firebaseAuth.currentUser?.sendEmailVerification()?.await()
             Result.success(true)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(AuthErrorMapper.map(e))
         }
     }
 
@@ -73,7 +74,7 @@ class AuthRepositoryImpl @Inject constructor(
             firebaseAuth.sendPasswordResetEmail(email).await()
             Result.success(true)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(AuthErrorMapper.map(e))
         }
     }
 

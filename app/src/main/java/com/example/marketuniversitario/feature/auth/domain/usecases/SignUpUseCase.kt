@@ -1,6 +1,7 @@
 package com.example.marketuniversitario.feature.auth.domain.usecases
 
-import com.example.marketuniversitario.feature.auth.domain.entities.UserSession
+import com.example.marketuniversitario.feature.auth.domain.models.UserSession
+import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import javax.inject.Inject
 
@@ -12,15 +13,15 @@ class SignUpUseCase @Inject constructor(
         val allowedDomain = "@unmsm.edu.pe"
 
         if (!email.endsWith(allowedDomain)) {
-            return Result.failure(Exception("Formato de correo inválido"))
+            return Result.failure(AuthException.NotUniversityAccount)
         }
 
         if (password.length < 6) {
-            return Result.failure(Exception("La contraseña debe tener al menos 6 caracteres."))
+            return Result.failure(AuthException.WeakPassword)
         }
 
-        val session = authRepository.register(email,password)
-            .getOrElse { return Result.failure(it) }
+        val session = authRepository.register(email, password)
+            .getOrElse { return Result.failure(AuthException.NotVerifiedEmail) }
 
         authRepository.sendEmailVerification()
             .onFailure {

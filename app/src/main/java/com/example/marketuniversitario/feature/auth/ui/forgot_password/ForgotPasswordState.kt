@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.auth.ui.viewmodel
+package com.example.marketuniversitario.feature.auth.ui.forgot_password
 
 sealed interface ForgotPasswordStatus {
     object Idle : ForgotPasswordStatus

@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.auth.ui.screen
+package com.example.marketuniversitario.feature.auth.ui.sign_up
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -46,11 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.marketuniversitario.R
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpEvent
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpState
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpStatus
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.SignUpViewModel
 
 @Composable
 fun SignUpScreen(
@@ -292,8 +288,8 @@ fun ResultDialog(success: Boolean, message: String, onDismiss: () -> Unit) {
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8A002B),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Text("OK")

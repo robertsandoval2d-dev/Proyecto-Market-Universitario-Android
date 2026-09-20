@@ -1,20 +1,16 @@
 package com.example.marketuniversitario.navigation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import com.example.marketuniversitario.Greeting
-import com.example.marketuniversitario.feature.auth.ui.screen.LoginRoute
-import com.example.marketuniversitario.feature.auth.ui.screen.WelcomeScreen
-import com.example.marketuniversitario.feature.auth.ui.screen.LoginScreen
-import com.example.marketuniversitario.feature.auth.ui.screen.SignUpRoute
-import com.example.marketuniversitario.feature.auth.ui.screen.WelcomeRoute
+import com.example.marketuniversitario.feature.auth.ui.login.LoginRoute
+import com.example.marketuniversitario.feature.auth.ui.sign_up.SignUpRoute
+import com.example.marketuniversitario.feature.auth.ui.welcome.WelcomeRoute
 import com.example.marketuniversitario.feature.splash.ui.screen.SplashScreen
-import com.example.marketuniversitario.feature.auth.ui.screen.ForgotPasswordRoute
+import com.example.marketuniversitario.feature.auth.ui.forgot_password.ForgotPasswordRoute
 
 @Composable
 fun NavigationWrapper(

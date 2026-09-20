@@ -1,11 +1,11 @@
 package com.example.marketuniversitario.feature.auth.domain.usecases
 
-import com.example.marketuniversitario.feature.auth.domain.entities.UserSession
-import com.example.marketuniversitario.feature.auth.domain.exceptions.NotUniversityAccountException
+import com.example.marketuniversitario.feature.auth.domain.models.UserSession
+import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import javax.inject.Inject
 
-class SignInWithGoogleUseCase  @Inject constructor (
+class SignInWithGoogleUseCase @Inject constructor(
     private val authRepository: AuthRepository
 ) {
     suspend operator fun invoke(token: String): Result<UserSession> {
@@ -15,7 +15,7 @@ class SignInWithGoogleUseCase  @Inject constructor (
 
         if (!session.email.endsWith("@unmsm.edu.pe")) {
             authRepository.logout()
-            return Result.failure(NotUniversityAccountException())
+            return Result.failure(AuthException.NotUniversityAccount)
         }
 
         return Result.success(session)

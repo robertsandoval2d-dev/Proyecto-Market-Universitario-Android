@@ -1,7 +1,6 @@
-package com.example.marketuniversitario.feature.auth.ui.screen
+package com.example.marketuniversitario.feature.auth.ui.welcome
 
 import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -19,9 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.marketuniversitario.R
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.WelcomeState
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.WelcomeStatus
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.WelcomeViewModel
 
 @Composable
 fun WelcomeScreen(
@@ -111,7 +107,7 @@ fun WelcomeScreen(
             ) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray.copy(alpha = 0.5f))
                 Text(
-                    text = "  Or  ",
+                    text = "  O  ",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.auth.ui.screen
+package com.example.marketuniversitario.feature.auth.ui.forgot_password
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -17,10 +17,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.marketuniversitario.R
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.ForgotPasswordEvent
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.ForgotPasswordState
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.ForgotPasswordStatus
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.ForgotPasswordViewModel
+import com.example.marketuniversitario.feature.auth.ui.sign_up.ResultDialog
 
 @Composable
 fun ForgotPasswordScreen(

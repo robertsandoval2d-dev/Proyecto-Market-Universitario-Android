@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.auth.ui.screen
+package com.example.marketuniversitario.feature.auth.ui.login
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
@@ -22,10 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.marketuniversitario.R
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginEvent
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginState
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginStatus
-import com.example.marketuniversitario.feature.auth.ui.viewmodel.LoginViewModel
+import com.example.marketuniversitario.feature.auth.ui.sign_up.ResultDialog
 
 @Composable
 fun LoginScreen(
