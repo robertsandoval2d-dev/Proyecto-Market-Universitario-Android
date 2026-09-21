@@ -21,13 +21,13 @@ class SignUpUseCase @Inject constructor(
         }
 
         val session = authRepository.register(email, password)
-            .getOrElse { return Result.failure(AuthException.NotVerifiedEmail) }
+            .getOrElse { return Result.failure(it) }
 
         authRepository.sendEmailVerification()
             .onFailure {
-                return Result.success(session.copy(isEmailVerified = false))
+                return Result.failure(it)
             }
 
-        return Result.success(session)
+        return Result.success(session.copy(isEmailVerified = false))
     }
 }

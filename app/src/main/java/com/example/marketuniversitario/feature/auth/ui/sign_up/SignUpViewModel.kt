@@ -1,6 +1,5 @@
 package com.example.marketuniversitario.feature.auth.ui.sign_up
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
@@ -60,7 +59,7 @@ class SignUpViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             status = SignUpStatus.Error(
-                                error.localizedMessage ?: "Error al registrar"
+                                error.message ?: "Error al registrar"
                             )
                         )
                     }

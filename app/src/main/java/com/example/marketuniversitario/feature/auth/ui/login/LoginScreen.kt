@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.marketuniversitario.R
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
+import com.example.marketuniversitario.feature.auth.ui.sign_up.LoadingDialog
 import com.example.marketuniversitario.feature.auth.ui.sign_up.ResultDialog
 
 @Composable
@@ -201,7 +202,9 @@ fun LoginRoute(
                 onLoginSuccess()
             }
         }
-        LoginStatus.Loading -> { /* Opcional: Mostrar un CircularProgressIndicator */ }
+        LoginStatus.Loading -> {
+            LoadingDialog()
+        }
         LoginStatus.Idle -> { }
     }
 }

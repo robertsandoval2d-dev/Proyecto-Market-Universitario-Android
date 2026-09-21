@@ -86,10 +86,18 @@ class AuthRepositoryImpl @Inject constructor(
         return firebaseAuth.currentUser?.isEmailVerified == true
     }
 
-    override suspend fun reloadUser(): Result<Unit> {
+    override suspend fun reloadUser(): Result<UserSession> {
         return try {
-            firebaseAuth.currentUser?.reload()?.await()
-            Result.success(Unit)
+            val user = firebaseAuth.currentUser ?: return Result.failure(Exception("No se encontró información del usuario."))
+            user.reload().await()
+            Result.success(
+                UserSession(
+                    uid = user.uid,
+                    email = user.email.orEmpty(),
+                    displayName = user.displayName,
+                    isEmailVerified = user.isEmailVerified
+                )
+            )
         } catch (e: Exception) {
             Result.failure(e)
         }
