@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -19,6 +20,7 @@ class SplashViewModel @Inject constructor (
     init {
         authRepository.logout() //PRUEBAS
         viewModelScope.launch {
+            delay(2000)
             _destination.value = resolveStartDestination()
         }
     }

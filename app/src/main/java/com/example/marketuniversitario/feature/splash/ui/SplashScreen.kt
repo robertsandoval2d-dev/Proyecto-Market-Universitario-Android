@@ -32,9 +32,6 @@ fun SplahScreenPreview(){
 }
 @Composable
 fun SplashScreen() {
-    LaunchedEffect(key1 = true) {
-        delay(2500.milliseconds)
-    }
 
     Box(
         modifier = Modifier
