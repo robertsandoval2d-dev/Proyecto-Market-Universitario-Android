@@ -19,4 +19,16 @@ class UserRemoteDataSource @Inject constructor(
         val snapshot = firestore.collection("users").document(userId).get().await()
         return snapshot.toObject(UserEntity::class.java)
     }
+
+    suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?) {
+        firestore.collection("users")
+            .document(userId)
+            .update(
+                mapOf(
+                    "hasBusiness" to hasBusiness,
+                    "businessId" to businessId
+                )
+            )
+            .await()
+    }
 }

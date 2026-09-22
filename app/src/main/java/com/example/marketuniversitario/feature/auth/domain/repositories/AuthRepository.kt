@@ -6,6 +6,7 @@ interface AuthRepository {
     suspend fun loginWithEmail(email: String, password: String): Result<UserSession>
     suspend fun signInWithGoogleToken(idToken: String): Result<UserSession>
     fun isUserLoggedIn(): Boolean
+    fun getCurrentUserId(): String?
     suspend fun register(email: String, password: String): Result<UserSession>
     suspend fun sendEmailVerification(): Result<Boolean>
     fun isEmailVerified(): Boolean

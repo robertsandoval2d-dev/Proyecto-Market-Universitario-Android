@@ -82,6 +82,10 @@ class AuthRepositoryImpl @Inject constructor(
         return firebaseAuth.currentUser != null
     }
 
+    override fun getCurrentUserId(): String? {
+        return firebaseAuth.currentUser?.uid
+    }
+
     override fun isEmailVerified(): Boolean {
         return firebaseAuth.currentUser?.isEmailVerified == true
     }

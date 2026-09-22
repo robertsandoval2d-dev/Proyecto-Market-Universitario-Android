@@ -31,4 +31,13 @@ class UserRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?): Result<Unit> {
+        return try {
+            remoteDataSource.updateUserBusinessStatus(userId, hasBusiness, businessId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
