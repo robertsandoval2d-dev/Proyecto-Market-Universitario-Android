@@ -40,4 +40,13 @@ class UserRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun updateUserProfile(user: User): Result<Unit> {
+        return try {
+            remoteDataSource.updateUserProfile(user.toEntity())
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

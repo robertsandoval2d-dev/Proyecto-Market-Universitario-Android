@@ -8,6 +8,7 @@ import com.example.marketuniversitario.feature.auth.ui.forgot_password.ForgotPas
 import com.example.marketuniversitario.feature.auth.ui.login.LoginRoute
 import com.example.marketuniversitario.feature.auth.ui.sign_up.SignUpRoute
 import com.example.marketuniversitario.feature.auth.ui.welcome.WelcomeRoute
+import com.example.marketuniversitario.feature.user.ui.profile_completion.ProfileCompletionRoute
 
 fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
     composable("welcome") {
@@ -19,8 +20,9 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
             onNavigateToSignUpScreen = {
                 navHostController.navigate("signup")
             },
-            onLoginSuccess = {
-                navHostController.navigate("inicio") {
+            onLoginSuccess = { isProfileComplete ->
+                val destination = if (isProfileComplete) "inicio" else "profile_completion"
+                navHostController.navigate(destination) {
                     popUpTo("welcome") { inclusive = true }
                 }
             }
@@ -36,8 +38,9 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
             onNavigateBack = {
                 navHostController.navigateUp()
             },
-            onNavigateHome = {
-                navHostController.navigate("inicio") {
+            onNavigateHome = { isProfileComplete ->
+                val destination = if (isProfileComplete) "inicio" else "profile_completion"
+                navHostController.navigate(destination) {
                     popUpTo("welcome") { inclusive = true }
                 }
             }
@@ -47,8 +50,9 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
     composable("login") {
         LoginRoute(
             viewModel = hiltViewModel(),
-            onLoginSuccess = {
-                navHostController.navigate("inicio") {
+            onLoginSuccess = { isProfileComplete ->
+                val destination = if (isProfileComplete) "inicio" else "profile_completion"
+                navHostController.navigate(destination) {
                     popUpTo("welcome") { inclusive = true }
                 }
             },
@@ -66,6 +70,21 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
             viewModel = hiltViewModel(),
             onNavigateBack = {
                 navHostController.navigateUp()
+            }
+        )
+    }
+
+    composable("profile_completion") {
+        ProfileCompletionRoute(
+            onNavigateHome = {
+                navHostController.navigate("inicio") {
+                    popUpTo(0) { inclusive = true }
+                }
+            },
+            onNavigateToWelcome = {
+                navHostController.navigate("welcome") {
+                    popUpTo(0) { inclusive = true }
+                }
             }
         )
     }

@@ -9,10 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.marketuniversitario.feature.user.domain.usecases.CheckProfileCompletionUseCase
 
 @HiltViewModel
 class SplashViewModel @Inject constructor (
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase
 ) : ViewModel() {
     private val _destination = MutableStateFlow<String?>(null)
     val destination = _destination.asStateFlow()
@@ -30,6 +32,9 @@ class SplashViewModel @Inject constructor (
 
         authRepository.reloadUser()
 
-        return if (authRepository.isEmailVerified()) "inicio" else "login"
+        if (!authRepository.isEmailVerified()) return "login"
+
+        val isProfileComplete = checkProfileCompletionUseCase().getOrDefault(false)
+        return if (isProfileComplete) "inicio" else "profile_completion"
     }
 }

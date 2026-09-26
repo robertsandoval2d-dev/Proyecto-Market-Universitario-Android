@@ -5,7 +5,7 @@ import android.content.Context
 sealed interface SignUpStatus {
     object Idle: SignUpStatus
     object Loading: SignUpStatus
-    data class Success(val isEmailVerified: Boolean) : SignUpStatus
+    data class Success(val isEmailVerified: Boolean, val isProfileComplete: Boolean) : SignUpStatus
     data class Error(val message: String): SignUpStatus
 }
 

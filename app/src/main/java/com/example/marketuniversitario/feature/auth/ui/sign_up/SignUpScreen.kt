@@ -336,7 +336,7 @@ fun LoadingDialog() {
 fun SignUpRoute(
     viewModel: SignUpViewModel,
     onRegisterSuccess: () -> Unit, //Para cuandro requiera verificación con correo
-    onNavigateHome: () -> Unit ,
+    onNavigateHome: (Boolean) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -381,7 +381,7 @@ fun SignUpRoute(
                 onDismiss = {
                     viewModel.onEvent(SignUpEvent.DismissDialog)
                     if (status.isEmailVerified) {
-                        onNavigateHome()
+                        onNavigateHome(status.isProfileComplete)
                     } else {
                         onRegisterSuccess()
                     }

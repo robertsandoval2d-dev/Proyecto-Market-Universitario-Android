@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignInWithGoogleUseCase
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignUpUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.CheckProfileCompletionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
-    private val signUpUseCase: SignUpUseCase
+    private val signUpUseCase: SignUpUseCase,
+    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignUpState())
@@ -53,7 +55,8 @@ class SignUpViewModel @Inject constructor(
         viewModelScope.launch {
             signUpUseCase.invoke(email, password)
                 .onSuccess { session ->
-                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified)) }
+                    val isComplete = checkProfileCompletionUseCase().getOrDefault(false)
+                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified, isComplete)) }
                 }
                 .onFailure { error ->
                     _state.update {
@@ -73,7 +76,8 @@ class SignUpViewModel @Inject constructor(
 
             signInWithGoogleUseCase(idToken)
                 .onSuccess { session ->
-                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified)) }
+                    val isComplete = checkProfileCompletionUseCase().getOrDefault(false)
+                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified, isComplete)) }
                 }
                 .onFailure { e ->
                     _state.update {

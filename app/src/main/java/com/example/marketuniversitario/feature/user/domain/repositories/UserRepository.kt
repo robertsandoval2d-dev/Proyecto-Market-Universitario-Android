@@ -6,4 +6,5 @@ interface UserRepository {
     suspend fun saveUser(user: User): Result<Unit>
     suspend fun getUser(userId: String): Result<User?>
     suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?): Result<Unit>
+    suspend fun updateUserProfile(user: User): Result<Unit>
 }

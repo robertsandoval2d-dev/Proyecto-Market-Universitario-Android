@@ -13,6 +13,14 @@ data class UserEntity(
     @get:PropertyName("hasBusiness") @set:PropertyName("hasBusiness")
     var hasBusiness: Boolean = false,
     val businessId: String? = null,
+    val photoUrl: String? = null,
+    val birthday: Long? = null,
+    val faculty: String? = null,
+    val gender: String? = null,
+    val primaryIntent: String? = null,
+    @get:PropertyName("isProfileComplete") @set:PropertyName("isProfileComplete")
+    var isProfileComplete: Boolean = false,
+
     val createdAt: Long = System.currentTimeMillis()
 )
 
@@ -23,7 +31,13 @@ fun User.toEntity() = UserEntity(
     phone = this.phone,
     preferences = this.preferences,
     hasBusiness = this.hasBusiness,
-    businessId = this.businessId
+    businessId = this.businessId,
+    photoUrl = this.photoUrl,
+    birthday = this.birthday,
+    faculty = this.faculty,
+    gender = this.gender,
+    primaryIntent = this.primaryIntent,
+    isProfileComplete = this.isProfileComplete
 )
 
 fun UserEntity.toDomain() = User(
@@ -33,5 +47,11 @@ fun UserEntity.toDomain() = User(
     phone = this.phone,
     preferences = this.preferences,
     hasBusiness = this.hasBusiness,
-    businessId = this.businessId
+    businessId = this.businessId,
+    photoUrl = this.photoUrl,
+    birthday = this.birthday,
+    faculty = this.faculty,
+    gender = this.gender,
+    primaryIntent = this.primaryIntent,
+    isProfileComplete = this.isProfileComplete
 )

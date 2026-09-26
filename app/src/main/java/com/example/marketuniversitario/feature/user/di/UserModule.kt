@@ -1,6 +1,8 @@
 package com.example.marketuniversitario.feature.user.di
 
+import com.example.marketuniversitario.feature.user.data.repositories.StorageRepositoryImpl
 import com.example.marketuniversitario.feature.user.data.repositories.UserRepositoryImpl
+import com.example.marketuniversitario.feature.user.domain.repositories.StorageRepository
 import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -17,4 +19,10 @@ abstract class UserModule {
     abstract fun bindUserRepository(
         impl: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStorageRepository(
+        impl: StorageRepositoryImpl
+    ): StorageRepository
 }

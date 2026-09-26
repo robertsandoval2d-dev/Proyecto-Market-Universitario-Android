@@ -31,4 +31,11 @@ class UserRemoteDataSource @Inject constructor(
             )
             .await()
     }
+
+    suspend fun updateUserProfile(userEntity: UserEntity) {
+        firestore.collection("users")
+            .document(userEntity.id)
+            .set(userEntity)
+            .await()
+    }
 }
