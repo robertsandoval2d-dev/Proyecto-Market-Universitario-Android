@@ -5,7 +5,7 @@ data class Business(
     val ownerId: String = "", // Para cruzar con la colección User
     val name: String = "",
     val description: String = "",
-    val category: String = "",
+    val categories: List<String> = emptyList(),
     val bannerUrl: String? = null,
     val isActive: Boolean = true,
 

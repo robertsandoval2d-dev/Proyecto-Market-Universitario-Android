@@ -14,7 +14,7 @@ class ActivateBusinessUseCase @Inject constructor(
     suspend operator fun invoke(
         name: String,
         description: String = "",
-        category: String = ""
+        categories: List<String>
     ): Result<Business> {
         val currentUid = authRepository.getCurrentUserId()
             ?: return Result.failure(Exception("Usuario no autenticado"))
@@ -27,7 +27,7 @@ class ActivateBusinessUseCase @Inject constructor(
             ownerId = currentUid,
             name = name.trim(),
             description = description.trim(),
-            category = category.trim(),
+            categories = categories,
             isActive = true
         )
 

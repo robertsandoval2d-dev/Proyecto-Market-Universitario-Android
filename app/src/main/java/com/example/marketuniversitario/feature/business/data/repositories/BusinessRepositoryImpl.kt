@@ -29,4 +29,13 @@ class BusinessRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun updateBusiness(business: Business): Result<Unit> {
+        return try {
+            remoteDataSource.updateBusiness(business.toEntity())
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

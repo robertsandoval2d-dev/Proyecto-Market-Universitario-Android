@@ -24,4 +24,11 @@ class BusinessRemoteDataSource @Inject constructor(
         val snapshot = firestore.collection("businesses").document(businessId).get().await()
         return snapshot.toObject(BusinessEntity::class.java)
     }
+
+    suspend fun updateBusiness(businessEntity: BusinessEntity) {
+        firestore.collection("businesses")
+            .document(businessEntity.id)
+            .set(businessEntity)
+            .await()
+    }
 }
