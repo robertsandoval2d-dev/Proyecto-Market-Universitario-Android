@@ -4,9 +4,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocalMall
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LocalMall
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,11 +33,11 @@ sealed class BottomNavItem(
         unselectedIcon = Icons.Outlined.Storefront
     )
 
-    object Messages : BottomNavItem(
-        route = "messages_tab",
-        title = "Mensajes",
-        selectedIcon = Icons.AutoMirrored.Filled.Chat,
-        unselectedIcon = Icons.AutoMirrored.Outlined.Chat
+    object Orders : BottomNavItem(
+        route = "orders_tab",
+        title = "Pedidos",
+        selectedIcon = Icons.Filled.LocalMall,
+        unselectedIcon = Icons.Outlined.LocalMall
     )
 
     object Profile : BottomNavItem(

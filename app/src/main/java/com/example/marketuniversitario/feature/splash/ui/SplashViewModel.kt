@@ -20,7 +20,8 @@ class SplashViewModel @Inject constructor (
     val destination = _destination.asStateFlow()
 
     init {
-        authRepository.logout() //PRUEBAS
+        //PRUEBAS
+        authRepository.logout()
         viewModelScope.launch {
             delay(2000)
             _destination.value = resolveStartDestination()

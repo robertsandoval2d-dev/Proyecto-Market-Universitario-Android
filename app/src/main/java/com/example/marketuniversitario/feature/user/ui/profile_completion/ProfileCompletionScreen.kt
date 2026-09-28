@@ -261,7 +261,7 @@ fun Step1PersonalData(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Cumpleaños
-        val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) } // val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) //SEBAS
         val dateString = state.birthday?.let { dateFormatter.format(Date(it)) } ?: ""
 
         OutlinedTextField(
