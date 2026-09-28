@@ -16,6 +16,4 @@ val mockProduct = Product(
     tags = listOf("audio", "bluetooth"),
     views = 100,
     salesCount = 20,
-    favoritesCount = 15,
-    rating = 4.5
 )

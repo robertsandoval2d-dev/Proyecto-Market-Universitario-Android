@@ -14,6 +14,8 @@ data class BusinessState(
     val name: String = "",
     val description: String = "",
     val categories: List<String> = emptyList(),
+    val productCount: Int = 0,
+    val serviceCount: Int = 0,
     val isEditing: Boolean = false,
     val showAddCategoryDialog: Boolean = false,
     val selectedCategoryToEdit: String? = null,

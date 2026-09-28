@@ -1,7 +1,9 @@
 package com.example.marketuniversitario.feature.business.di
 
 import com.example.marketuniversitario.feature.business.data.repositories.BusinessRepositoryImpl
+import com.example.marketuniversitario.feature.business.data.repositories.ProductRepositoryImpl
 import com.example.marketuniversitario.feature.business.domain.repositories.BusinessRepository
+import com.example.marketuniversitario.feature.business.domain.repositories.ProductRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,4 +19,10 @@ abstract class BusinessModule {
     abstract fun bindBusinessRepository(
         impl: BusinessRepositoryImpl
     ): BusinessRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindProductRepository(
+        impl: ProductRepositoryImpl
+    ): ProductRepository
 }

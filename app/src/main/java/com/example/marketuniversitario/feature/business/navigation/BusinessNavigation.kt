@@ -4,14 +4,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.marketuniversitario.feature.business.ui.business.BusinessRoute
+import com.example.marketuniversitario.feature.business.ui.manage_item.ManageItemScreen
 import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 
-fun NavGraphBuilder.businessGraph(navController: NavHostController) {
-    composable(BottomNavItem.Business.route) {
+fun NavGraphBuilder.businessGraph(navController: NavHostController, rootNavController: NavHostController) {
+    composable("business_tab") {
         BusinessRoute(
-            onNavigateToAddProduct = {
-                navController.navigate("add_product")
-            },
             onHomeScreen = {
                 navController.navigate(BottomNavItem.Home.route) {
                     popUpTo(navController.graph.startDestinationId) {
@@ -20,6 +18,26 @@ fun NavGraphBuilder.businessGraph(navController: NavHostController) {
                     launchSingleTop = true
                     restoreState = true
                 }
+            },
+            onManageProductScreen = {
+                navController.navigate("manage_item/PRODUCT")
+            },
+            onManageServiceScreen = {
+                navController.navigate("manage_item/SERVICE")
+            }
+        )
+    }
+
+    composable("manage_item/{itemType}"){
+        ManageItemScreen(
+            onNavigateBack = {
+                navController.navigateUp()
+            },
+            onNavigateToAddItem = { itemType ->
+                rootNavController.navigate("edit_item/${itemType.name}")
+            },
+            onNavigateToEditItem = { product ->
+                rootNavController.navigate("edit_item/${product.type}?productId=${product.id}")
             }
         )
     }

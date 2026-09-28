@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.NavHostController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,13 +26,15 @@ import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 import com.example.marketuniversitario.feature.main.ui.util.BottomNavigationBar
 
 @Composable
-fun MainRoute() {
-    MainScreen()
+fun MainRoute(rootNavController: NavHostController) {
+    MainScreen(rootNavController = rootNavController)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    rootNavController: NavHostController
+) {
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -39,20 +42,25 @@ fun MainScreen() {
 
     Scaffold(
         topBar = {
+            val isBusinessRoute = currentRoute == BottomNavItem.Business.route ||
+                    currentRoute?.startsWith("manage_item") == true
+
             if (currentRoute != BottomNavItem.Home.route) {
-                val title = when (currentRoute) {
-                    BottomNavItem.Business.route -> "Mi Negocio"
-                    BottomNavItem.Orders.route -> "Mis Pedidos"
-                    BottomNavItem.Profile.route -> "Mi Perfil"
+                val title = when {
+                    isBusinessRoute -> "Mi Negocio"
+                    currentRoute == BottomNavItem.Orders.route -> "Mis Pedidos"
+                    currentRoute == BottomNavItem.Profile.route -> "Mi Perfil"
                     else -> ""
                 }
 
                 CenterAlignedTopAppBar(
-                    title = { Text(
-                        text = title,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    ) },
+                    title = {
+                        Text(
+                            text = title,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
@@ -74,7 +82,7 @@ fun MainScreen() {
             composable(BottomNavItem.Home.route) {
                 HomeRoute()
             }
-            businessGraph(bottomNavController)
+            businessGraph(bottomNavController, rootNavController)
             composable(BottomNavItem.Orders.route) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = "Pantalla de Pedidos")

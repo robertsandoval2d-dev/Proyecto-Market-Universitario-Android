@@ -5,8 +5,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.marketuniversitario.feature.main.ui.MainRoute
 
-fun NavGraphBuilder.mainGraph(navHostController: NavHostController) {
+fun NavGraphBuilder.mainGraph(rootNavController: NavHostController) {
     composable("inicio") {
-        MainRoute()
+        MainRoute(rootNavController = rootNavController)
     }
 }

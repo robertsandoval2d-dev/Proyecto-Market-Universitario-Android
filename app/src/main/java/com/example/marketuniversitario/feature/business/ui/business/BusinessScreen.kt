@@ -42,6 +42,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -66,16 +67,22 @@ import com.example.marketuniversitario.feature.business.domain.models.BusinessCa
 @Composable
 fun BusinessRoute(
     viewModel: BusinessViewModel = hiltViewModel(),
-    onNavigateToAddProduct: () -> Unit = {},
-    onHomeScreen: () -> Unit = {}
+    onHomeScreen: () -> Unit = {},
+    onManageProductScreen: () -> Unit = {},
+    onManageServiceScreen: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(BusinessEvent.CheckStatus)
+    }
 
     BusinessScreen(
         state = state,
         onEvent = viewModel::onEvent,
-        onNavigateToAddProduct = onNavigateToAddProduct,
-        onHomeScreen = onHomeScreen
+        onHomeScreen = onHomeScreen,
+        onManageProductScreen = onManageProductScreen,
+        onManageServiceScreen = onManageServiceScreen
     )
 }
 
@@ -83,8 +90,9 @@ fun BusinessRoute(
 fun BusinessScreen(
     state: BusinessState,
     onEvent: (BusinessEvent) -> Unit,
-    onNavigateToAddProduct: () -> Unit = {},
-    onHomeScreen: () -> Unit = {}
+    onHomeScreen: () -> Unit = {},
+    onManageProductScreen: () -> Unit = {},
+    onManageServiceScreen: () -> Unit = {},
 ) {
     when (val status = state.status) {
         is BusinessStatus.Loading -> {
@@ -100,7 +108,8 @@ fun BusinessScreen(
         }
         is BusinessStatus.HasBusiness -> {
             ManageBusinessContent(
-                onAddProductClick = onNavigateToAddProduct,
+                onManageProductScreen = onManageProductScreen,
+                onManageServiceScreen = onManageServiceScreen,
                 onEvent = onEvent,
                 state = state
             )
@@ -168,7 +177,8 @@ private fun ActivateBusinessContent(
 
 @Composable
 private fun ManageBusinessContent(
-    onAddProductClick: () -> Unit,
+    onManageProductScreen: () -> Unit = {},
+    onManageServiceScreen: () -> Unit = {},
     onEvent: (BusinessEvent) -> Unit,
     state: BusinessState
 ) {
@@ -250,15 +260,17 @@ private fun ManageBusinessContent(
             StatCard(
                 modifier = Modifier.weight(1f),
                 title = "Total \nProductos",
-                value = "150",
-                icon = Icons.Default.Inventory
+                value = state.productCount.toString(),
+                icon = Icons.Default.Inventory,
+                onManageClick = onManageProductScreen
             )
             // Tarjeta 2: Servicios Ofrecidos
             StatCard(
                 modifier = Modifier.weight(1f),
                 title = "Servicios \nOfrecidos",
-                value = "20",
-                icon = Icons.Default.Build
+                value = state.serviceCount.toString(),
+                icon = Icons.Default.Build,
+                onManageClick = onManageServiceScreen
             )
         }
 
@@ -295,6 +307,9 @@ private fun ManageBusinessContent(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
 
         // --- DIÁLOGO DE OPCIONES AL PRESIONAR EL LAPICITO DE UNA CATEGORÍA ---
         if (state.selectedCategoryToEdit != null) {
@@ -573,7 +588,8 @@ fun ActivateBusinessContentPreview() {
 fun ManageBusinessContentPreview(){
     MarketUniversitarioTheme() {
         ManageBusinessContent(
-            onAddProductClick = {},
+            onManageProductScreen = {},
+            onManageServiceScreen = {},
             onEvent = {},
             state = BusinessState()
         )

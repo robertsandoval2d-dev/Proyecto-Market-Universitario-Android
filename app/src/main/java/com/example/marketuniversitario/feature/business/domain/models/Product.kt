@@ -7,7 +7,6 @@ data class Product(
 
     val businessId: String = "",
     val businessName: String = "",
-    val businessLogoUrl: String? = null,
 
     val name: String = "",
     val description: String = "",
@@ -26,8 +25,5 @@ data class Product(
     // 2. Filtrado Colaborativo (Métricas implícitas de interacción)
     val views: Int = 0,
     val salesCount: Int = 0,
-    val favoritesCount: Int = 0,
-    val rating: Double = 0.0,
-
     val createdAt: Long = System.currentTimeMillis()
 )

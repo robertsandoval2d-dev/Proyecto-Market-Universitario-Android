@@ -2,8 +2,10 @@ package com.example.marketuniversitario.feature.business.ui.business
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.marketuniversitario.feature.business.domain.models.ItemType
 import com.example.marketuniversitario.feature.business.domain.usecases.ActivateBusinessUseCase
 import com.example.marketuniversitario.feature.business.domain.usecases.GetMyBusinessUseCase
+import com.example.marketuniversitario.feature.business.domain.usecases.GetProductsByBusinessUseCase
 import com.example.marketuniversitario.feature.business.domain.usecases.UpdateBusinessUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +18,8 @@ import javax.inject.Inject
 class BusinessViewModel @Inject constructor(
     private val getMyBusinessUseCase: GetMyBusinessUseCase,
     private val activateBusinessUseCase: ActivateBusinessUseCase,
-    private val updateBusinessUseCase: UpdateBusinessUseCase
+    private val updateBusinessUseCase: UpdateBusinessUseCase,
+    private val getProductsByBusinessUseCase: GetProductsByBusinessUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BusinessState())
@@ -58,6 +61,7 @@ class BusinessViewModel @Inject constructor(
                                 categories = business.categories
                             )
                         }
+                        loadBusinessItemCounts(business.id)
                     } else {
                         _state.update { it.copy(status = BusinessStatus.NoBusiness) }
                     }
@@ -81,9 +85,26 @@ class BusinessViewModel @Inject constructor(
                             categories = createdBusiness.categories
                         )
                     }
+                    loadBusinessItemCounts(createdBusiness.id)
                 }
                 .onFailure { error ->
                     _state.update { it.copy(status = BusinessStatus.Error(error.message ?: "Error al activar el negocio")) }
+                }
+        }
+    }
+
+    private fun loadBusinessItemCounts(businessId: String) {
+        viewModelScope.launch {
+            getProductsByBusinessUseCase(businessId)
+                .onSuccess { items ->
+                    val products = items.count { it.type == ItemType.PRODUCT.name }
+                    val services = items.count { it.type == ItemType.SERVICE.name }
+                    _state.update {
+                        it.copy(
+                            productCount = products,
+                            serviceCount = services
+                        )
+                    }
                 }
         }
     }
