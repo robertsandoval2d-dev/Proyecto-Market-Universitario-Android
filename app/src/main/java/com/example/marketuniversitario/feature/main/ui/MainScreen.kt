@@ -19,7 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.marketuniversitario.feature.business.ui.business.BusinessRoute
+import com.example.marketuniversitario.feature.business.navigation.businessGraph
 import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 import com.example.marketuniversitario.feature.main.ui.util.BottomNavigationBar
 
@@ -71,19 +71,7 @@ fun MainScreen() {
                     Text(text = "Pantalla de Inicio")
                 }
             }
-            composable(BottomNavItem.Business.route) {
-                BusinessRoute(
-                    onHomeScreen = {
-                        bottomNavController.navigate(BottomNavItem.Home.route) {
-                            popUpTo(bottomNavController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                )
-            }
+            businessGraph(bottomNavController)
             composable(BottomNavItem.Messages.route) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = "Pantalla de Mensajería")

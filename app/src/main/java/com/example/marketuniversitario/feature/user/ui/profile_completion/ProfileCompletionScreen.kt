@@ -35,11 +35,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import com.example.marketuniversitario.feature.auth.ui.sign_up.LoadingDialog
 import com.example.marketuniversitario.feature.auth.ui.sign_up.ResultDialog
 import com.example.marketuniversitario.feature.user.domain.model.ProfileConstants
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ProfileCompletionRoute(
@@ -159,6 +162,12 @@ fun Step1PersonalData(
 ) {
     val scrollState = rememberScrollState()
     var showDatePicker by remember { mutableStateOf(false) }
+    val dateInteractionSource = remember { MutableInteractionSource() }
+    val isDatePressed by dateInteractionSource.collectIsPressedAsState()
+    
+    if (isDatePressed) {
+        showDatePicker = true
+    }
 
     // imágen nativo
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -247,7 +256,7 @@ fun Step1PersonalData(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             isError = state.nameError != null,
-            supportingText = state.nameError?.let { { Text(it) } }
+            supportingText = if (state.nameError != null) { { Text(state.nameError) } } else null
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -261,16 +270,8 @@ fun Step1PersonalData(
             label = { Text("Cumpleaños") },
             leadingIcon = { Icon(Icons.Filled.DateRange, "Cumpleaños") },
             readOnly = true,
-            enabled = false, // Para que el clic vaya directo al Box
-            colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledBorderColor = MaterialTheme.colorScheme.outline,
-                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showDatePicker = true }
+            interactionSource = dateInteractionSource,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -295,7 +296,7 @@ fun Step1PersonalData(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             isError = state.phoneError != null,
-            supportingText = state.phoneError?.let { { Text(it) } }
+            supportingText = if (state.phoneError != null) { { Text(state.phoneError) } } else null
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -307,7 +308,7 @@ fun Step1PersonalData(
             selectedOption = state.faculty,
             onOptionSelected = { onEvent(ProfileCompletionEvent.FacultySelected(it)) },
             isError = state.facultyError != null,
-            supportingText = state.facultyError
+            supportingText = if (state.facultyError != null) { { Text(state.facultyError) } } else null
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -435,7 +436,7 @@ fun ExposedDropdown(
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
     isError: Boolean = false,
-    supportingText: String? = null
+    supportingText: @Composable (() -> Unit)? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -451,7 +452,7 @@ fun ExposedDropdown(
             leadingIcon = { Icon(icon, label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             isError = isError,
-            supportingText = supportingText?.let { { Text(it) } },
+            supportingText = supportingText,
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor()

@@ -29,7 +29,12 @@ class ProfileCompletionViewModel @Inject constructor(
         ProfileCompletionState(
             name = savedStateHandle.get<String>("name") ?: "",
             phone = savedStateHandle.get<String>("phone") ?: "",
-            faculty = savedStateHandle.get<String>("faculty") ?: ""
+            faculty = savedStateHandle.get<String>("faculty") ?: "",
+            gender = savedStateHandle.get<String>("gender") ?: "",
+            birthday = savedStateHandle.get<Long>("birthday"),
+            photoUri = savedStateHandle.get<String>("photoUri"),
+            selectedPreferences = savedStateHandle.get<List<String>>("selectedPreferences") ?: emptyList(),
+            primaryIntent = savedStateHandle.get<String>("primaryIntent") ?: ""
         )
     )
     val state = _state.asStateFlow()
@@ -58,7 +63,10 @@ class ProfileCompletionViewModel @Inject constructor(
 
     fun onEvent(event: ProfileCompletionEvent) {
         when (event) {
-            is ProfileCompletionEvent.PhotoSelected -> _state.update { it.copy(photoUri = event.uri) }
+            is ProfileCompletionEvent.PhotoSelected -> {
+                savedStateHandle["photoUri"] = event.uri
+                _state.update { it.copy(photoUri = event.uri) }
+            }
             is ProfileCompletionEvent.NameChanged -> {
                 savedStateHandle["name"] = event.name
                 _state.update { it.copy(name = event.name, nameError = null) }
@@ -71,11 +79,20 @@ class ProfileCompletionViewModel @Inject constructor(
                 savedStateHandle["faculty"] = event.faculty
                 _state.update { it.copy(faculty = event.faculty, facultyError = null) }
             }
-            is ProfileCompletionEvent.GenderSelected -> _state.update { it.copy(gender = event.gender) }
-            is ProfileCompletionEvent.BirthdaySelected -> _state.update { it.copy(birthday = event.dateMillis) }
+            is ProfileCompletionEvent.GenderSelected -> {
+                savedStateHandle["gender"] = event.gender
+                _state.update { it.copy(gender = event.gender) }
+            }
+            is ProfileCompletionEvent.BirthdaySelected -> {
+                savedStateHandle["birthday"] = event.dateMillis
+                _state.update { it.copy(birthday = event.dateMillis) }
+            }
 
             is ProfileCompletionEvent.PreferenceToggled -> togglePreference(event.preference)
-            is ProfileCompletionEvent.IntentSelected -> _state.update { it.copy(primaryIntent = event.intent) }
+            is ProfileCompletionEvent.IntentSelected -> {
+                savedStateHandle["primaryIntent"] = event.intent
+                _state.update { it.copy(primaryIntent = event.intent) }
+            }
 
             is ProfileCompletionEvent.SubmitProfile -> submitProfile()
             is ProfileCompletionEvent.DismissDialog -> _state.update { it.copy(status = ProfileCompletionStatus.Idle) }
@@ -118,6 +135,7 @@ class ProfileCompletionViewModel @Inject constructor(
                 return
             }
         }
+        savedStateHandle["selectedPreferences"] = currentPreferences
         _state.update { it.copy(selectedPreferences = currentPreferences) }
     }
 

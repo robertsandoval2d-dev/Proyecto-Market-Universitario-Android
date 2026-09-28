@@ -7,7 +7,7 @@ import com.example.marketuniversitario.feature.business.ui.business.BusinessRout
 import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 
 fun NavGraphBuilder.businessGraph(navController: NavHostController) {
-    composable("business_tab") {
+    composable(BottomNavItem.Business.route) {
         BusinessRoute(
             onNavigateToAddProduct = {
                 navController.navigate("add_product")

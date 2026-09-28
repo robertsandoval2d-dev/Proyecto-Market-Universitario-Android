@@ -78,12 +78,12 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
         ProfileCompletionRoute(
             onNavigateHome = {
                 navHostController.navigate("inicio") {
-                    popUpTo(0) { inclusive = true }
+                    popUpTo(navHostController.graph.id) { inclusive = true }
                 }
             },
             onNavigateToWelcome = {
                 navHostController.navigate("welcome") {
-                    popUpTo(0) { inclusive = true }
+                    popUpTo(navHostController.graph.id) { inclusive = true }
                 }
             }
         )
