@@ -11,9 +11,11 @@ sealed interface BusinessStatus {
 }
 
 data class BusinessState(
+    val businessId: String = "",
     val name: String = "",
     val description: String = "",
     val categories: List<String> = emptyList(),
+    val bannerUrl: String? = null,
     val productCount: Int = 0,
     val serviceCount: Int = 0,
     val isEditing: Boolean = false,
@@ -31,6 +33,7 @@ sealed interface BusinessEvent {
     ) : BusinessEvent
     data class NameChanged(val name: String) : BusinessEvent
     data class DescriptionChanged(val description: String) : BusinessEvent
+    data class BannerSelected(val uri: String) : BusinessEvent
     object IsEditing : BusinessEvent
     object SaveBusiness : BusinessEvent
     object ShowAddCategoryDialog : BusinessEvent

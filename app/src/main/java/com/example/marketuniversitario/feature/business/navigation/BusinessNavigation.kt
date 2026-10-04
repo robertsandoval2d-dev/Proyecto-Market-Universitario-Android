@@ -19,16 +19,16 @@ fun NavGraphBuilder.businessGraph(navController: NavHostController, rootNavContr
                     restoreState = true
                 }
             },
-            onManageProductScreen = {
-                navController.navigate("manage_item/PRODUCT")
+            onManageProductScreen = { businessId ->
+                navController.navigate("manage_item/$businessId/PRODUCT")
             },
-            onManageServiceScreen = {
-                navController.navigate("manage_item/SERVICE")
+            onManageServiceScreen = { businessId ->
+                navController.navigate("manage_item/$businessId/SERVICE")
             }
         )
     }
 
-    composable("manage_item/{itemType}"){
+    composable("manage_item/{businessId}/{itemType}") {
         ManageItemScreen(
             onNavigateBack = {
                 navController.navigateUp()

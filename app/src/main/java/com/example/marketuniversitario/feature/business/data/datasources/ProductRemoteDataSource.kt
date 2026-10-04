@@ -8,17 +8,6 @@ import javax.inject.Inject
 class ProductRemoteDataSource @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
-    suspend fun createProduct(productEntity: ProductEntity): String {
-        val docRef = if (productEntity.id.isNotBlank()) {
-            firestore.collection("products").document(productEntity.id)
-        } else {
-            firestore.collection("products").document()
-        }
-
-        val entityToSave = productEntity.copy(id = docRef.id)
-        docRef.set(entityToSave).await()
-        return docRef.id
-    }
 
     suspend fun getProduct(productId: String): ProductEntity? {
         val snapshot = firestore.collection("products").document(productId).get().await()
@@ -43,6 +32,21 @@ class ProductRemoteDataSource @Inject constructor(
             .document(productEntity.id)
             .set(productEntity)
             .await()
+    }
+
+    suspend fun updateBusinessNameInProducts(businessId: String, newBusinessName: String) {
+        val snapshot = firestore.collection("products")
+            .whereEqualTo("businessId", businessId)
+            .get()
+            .await()
+
+        if (snapshot.documents.isNotEmpty()) {
+            val batch = firestore.batch()
+            for (doc in snapshot.documents) {
+                batch.update(doc.reference, "businessName", newBusinessName)
+            }
+            batch.commit().await()
+        }
     }
 
     suspend fun deleteProduct(productId: String) {

@@ -35,6 +35,7 @@ class BusinessViewModel @Inject constructor(
             is BusinessEvent.ActivateBusiness -> activateBusiness(event.name, event.description, event.categories)
             is BusinessEvent.NameChanged -> _state.update { it.copy(name = event.name) }
             is BusinessEvent.DescriptionChanged -> _state.update { it.copy(description = event.description) }
+            is BusinessEvent.BannerSelected -> _state.update { it.copy(bannerUrl = event.uri) }
             is BusinessEvent.IsEditing -> _state.update { it.copy(isEditing = true) }
             is BusinessEvent.SaveBusiness -> saveBusiness()
             is BusinessEvent.ShowAddCategoryDialog -> _state.update { it.copy(showAddCategoryDialog = true) }
@@ -56,9 +57,11 @@ class BusinessViewModel @Inject constructor(
                         _state.update {
                             it.copy(
                                 status = BusinessStatus.HasBusiness(business),
+                                businessId = business.id,
                                 name = business.name,
                                 description = business.description,
-                                categories = business.categories
+                                categories = business.categories,
+                                bannerUrl = business.bannerUrl
                             )
                         }
                         loadBusinessItemCounts(business.id)
@@ -80,9 +83,11 @@ class BusinessViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             status = BusinessStatus.HasBusiness(createdBusiness),
+                            businessId = createdBusiness.id,
                             name = createdBusiness.name,
                             description = createdBusiness.description,
-                            categories = createdBusiness.categories
+                            categories = createdBusiness.categories,
+                            bannerUrl = createdBusiness.bannerUrl
                         )
                     }
                     loadBusinessItemCounts(createdBusiness.id)
@@ -115,7 +120,8 @@ class BusinessViewModel @Inject constructor(
 
         val updatedBusiness = currentBusiness.copy(
             name = _state.value.name.trim(),
-            description = _state.value.description.trim()
+            description = _state.value.description.trim(),
+            bannerUrl = _state.value.bannerUrl
         )
 
         _state.update { it.copy(status = BusinessStatus.Loading) }

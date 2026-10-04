@@ -8,5 +8,6 @@ interface ProductRepository {
     suspend fun getProductsByBusiness(businessId: String): Result<List<Product>>
     suspend fun getProducts(): Result<List<Product>>
     suspend fun updateProduct(product: Product): Result<Unit>
+    suspend fun updateBusinessNameInProducts(businessId: String, newBusinessName: String): Result<Unit>
     suspend fun deleteProduct(productId: String): Result<Unit>
 }

@@ -40,7 +40,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,8 +74,8 @@ import com.example.marketuniversitario.feature.business.domain.models.BusinessCa
 fun BusinessRoute(
     viewModel: BusinessViewModel = hiltViewModel(),
     onHomeScreen: () -> Unit = {},
-    onManageProductScreen: () -> Unit = {},
-    onManageServiceScreen: () -> Unit = {}
+    onManageProductScreen: (String) -> Unit = {},
+    onManageServiceScreen: (String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -91,8 +97,8 @@ fun BusinessScreen(
     state: BusinessState,
     onEvent: (BusinessEvent) -> Unit,
     onHomeScreen: () -> Unit = {},
-    onManageProductScreen: () -> Unit = {},
-    onManageServiceScreen: () -> Unit = {},
+    onManageProductScreen: (String) -> Unit = {},
+    onManageServiceScreen: (String) -> Unit = {},
 ) {
     when (val status = state.status) {
         is BusinessStatus.Loading -> {
@@ -108,8 +114,8 @@ fun BusinessScreen(
         }
         is BusinessStatus.HasBusiness -> {
             ManageBusinessContent(
-                onManageProductScreen = onManageProductScreen,
-                onManageServiceScreen = onManageServiceScreen,
+                onManageProductScreen = { onManageProductScreen(state.businessId) },
+                onManageServiceScreen = { onManageServiceScreen(state.businessId) },
                 onEvent = onEvent,
                 state = state
             )
@@ -191,10 +197,53 @@ private fun ManageBusinessContent(
         verticalArrangement = Arrangement.Top
     ) {
         Text(
-            text = "Información del negocio",
+            text = "Información del Negocio",
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.headlineSmall
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val galleryLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri ->
+            uri?.let { onEvent(BusinessEvent.BannerSelected(it.toString())) }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.outlineVariant)
+                .clickable (enabled = state.isEditing) {
+                    galleryLauncher.launch("image/*")
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            if (!state.bannerUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(state.bannerUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Banner del negocio",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(id = android.R.drawable.ic_menu_camera),
+                        contentDescription = "Añadir banner",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(text = "Añadir foto de banner", fontSize = 13.sp)
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(

@@ -20,6 +20,7 @@ class ManageItemViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val businessIdArg: String = savedStateHandle.get<String>("businessId") ?: ""
     private val itemTypeArg: String = savedStateHandle.get<String>("itemType") ?: ItemType.PRODUCT.name
     private val initialItemType = try {
         ItemType.valueOf(itemTypeArg)
@@ -45,7 +46,7 @@ class ManageItemViewModel @Inject constructor(
     private fun loadItems() {
         _state.update { it.copy(status = ManageItemStatus.Loading) }
         viewModelScope.launch {
-            getProductsByBusinessUseCase()
+            getProductsByBusinessUseCase(businessIdArg)
                 .onSuccess { allItems ->
                     val filtered = allItems.filter { it.type == _state.value.selectedItemType.name }
                     _state.update {

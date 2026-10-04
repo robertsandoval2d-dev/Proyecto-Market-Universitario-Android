@@ -2,8 +2,11 @@ package com.example.marketuniversitario.feature.user.data.datasources
 
 import com.example.marketuniversitario.feature.user.data.models.UserEntity
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 class UserRemoteDataSource @Inject constructor(
     private val firestore: FirebaseFirestore
@@ -16,8 +19,21 @@ class UserRemoteDataSource @Inject constructor(
     }
 
     suspend fun getUser(userId: String): UserEntity? {
-        val snapshot = firestore.collection("users").document(userId).get().await()
-        return snapshot.toObject(UserEntity::class.java)
+        return try {
+            // Intentar servidor con un límite de 3 segundos. Si expira o falla, leer de la caché local de Firestore.
+            withTimeoutOrNull(3000.milliseconds) {
+                firestore.collection("users").document(userId).get().await()
+            }?.toObject(UserEntity::class.java)
+                ?: firestore.collection("users").document(userId).get(Source.CACHE).await()
+                    .toObject(UserEntity::class.java)
+        } catch (e: Exception) {
+            try {
+                firestore.collection("users").document(userId).get(Source.CACHE).await()
+                    .toObject(UserEntity::class.java)
+            } catch (cacheEx: Exception) {
+                null
+            }
+        }
     }
 
     suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?) {

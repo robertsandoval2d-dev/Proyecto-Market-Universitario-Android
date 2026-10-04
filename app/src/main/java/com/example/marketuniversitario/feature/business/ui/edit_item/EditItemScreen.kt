@@ -2,6 +2,8 @@ package com.example.marketuniversitario.feature.business.ui.edit_item
 
 import android.R
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
 import com.example.marketuniversitario.feature.business.domain.models.ItemType
 import com.example.marketuniversitario.feature.business.domain.models.ProductCategory
@@ -74,6 +79,12 @@ fun EditItemContent(
     }
 
     val buttonText = if (state.isEditMode) "GUARDAR CAMBIOS" else "CREAR ${if (isProduct) "PRODUCTO" else "SERVICIO"}"
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { onEvent(EditItemEvent.PhotoChanged(it.toString())) }
+    }
 
     // AlertDialog para mostrar el error
     if (state.status is EditItemStatus.Error) {
@@ -140,18 +151,30 @@ fun EditItemContent(
                     .clip(RoundedCornerShape(24.dp))
                     .background(MaterialTheme.colorScheme.outlineVariant)
                     .border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp))
-                    .clickable { /* Acción añadir foto */ },
+                    .clickable { galleryLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_menu_camera),
-                        contentDescription = "Cámara",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
+                if (!state.photoUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(state.photoUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Foto del producto",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Añadir foto", fontSize = 14.sp)
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_menu_camera),
+                            contentDescription = "Cámara",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "Añadir foto", fontSize = 14.sp)
+                    }
                 }
             }
 
@@ -237,7 +260,7 @@ fun EditItemContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo: Categoría (Dropdown utilizando EditItemState.selectedCategoryDisplayName)
+            // Campo: Categoría (Dropdown)
             var categoryExpanded by remember { mutableStateOf(false) }
 
             ExposedDropdownMenuBox(
