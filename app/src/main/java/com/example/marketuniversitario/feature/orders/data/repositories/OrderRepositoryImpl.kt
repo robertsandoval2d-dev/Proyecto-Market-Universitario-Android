@@ -1,5 +1,7 @@
 package com.example.marketuniversitario.feature.orders.data.repositories
 
+import com.example.marketuniversitario.feature.orders.data.datasources.OrderRemoteDataSource
+import com.example.marketuniversitario.feature.orders.data.models.toEntity
 import com.example.marketuniversitario.feature.orders.domain.model.Order
 import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
 import com.example.marketuniversitario.feature.orders.domain.models.Message
@@ -8,14 +10,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import javax.inject.Inject
 
-class OrderRepositoryImpl @Inject constructor() : OrderRepository {
+class OrderRepositoryImpl @Inject constructor(
+    private val remoteDataSource: OrderRemoteDataSource
+) : OrderRepository {
 
     override suspend fun getOrders(): Result<List<Order>> {
         TODO("Not yet implemented")
     }
 
     override suspend fun createOrder(order: Order): Result<Order> {
-        TODO("Not yet implemented")
+        return try {
+            val entity = order.toEntity()
+            val generatedId = remoteDataSource.createOrder(entity)
+            Result.success(order.copy(id = generatedId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun getOrdersByBuyer(buyerId: String): Result<List<Order>> {
