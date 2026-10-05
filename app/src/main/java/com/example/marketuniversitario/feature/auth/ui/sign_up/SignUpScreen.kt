@@ -292,10 +292,16 @@ fun SignUpSocialFooter(
 }
 
 @Composable
-fun ResultDialog(success: Boolean, message: String, onDismiss: () -> Unit) {
+fun ResultDialog(
+    success: Boolean,
+    message: String,
+    title: String? = null,
+    onDismiss: () -> Unit
+) {
+    val dialogTitle = title ?: if (success) "Registro exitoso" else "Error"
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (success) "Registro exitoso" else "Error") },
+        title = { Text(dialogTitle) },
         text = { Text(message) },
         confirmButton = {
             Button(

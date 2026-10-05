@@ -144,6 +144,7 @@ fun ForgotPasswordRoute(
         is ForgotPasswordStatus.Success -> {
             ResultDialog(
                 success = true,
+                title = "Correo enviado",
                 message = "Se ha enviado un enlace de recuperación a tu correo.",
                 onDismiss = {
                     viewModel.onEvent(ForgotPasswordEvent.DismissDialog)
