@@ -1,8 +1,8 @@
 package com.example.marketuniversitario.feature.orders.ui.orders
 
 import androidx.lifecycle.ViewModel
-import com.example.marketuniversitario.feature.orders.domain.models.Order
-import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
+import com.example.marketuniversitario.feature.orders.domain.model.Order
+import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,9 +13,9 @@ import javax.inject.Inject
 class OrdersViewModel @Inject constructor() : ViewModel() {
 
     private val allMockOrders = mutableListOf(
-        Order("1", "Calculadora Científica Casio", "", 45.0, 1, OrderStatus.PENDING, "04 Oct, 10:30 AM", isSale = false),
-        Order("2", "Menú Almuerzo - FISI", "", 12.0, 2, OrderStatus.PREPARING, "04 Oct, 11:15 AM", isSale = false),
-        Order("4", "Brownie de Chocolate", "", 4.5, 3, OrderStatus.PENDING, "04 Oct, 02:20 PM", isSale = true)
+        Order(id = "1", productName = "Calculadora Científica Casio", productImage = "", productPrice = 45.0, quantity = 1, status = OrderStatus.PENDING, isSale = false),
+        Order(id = "2", productName = "Menú Almuerzo - FISI", productImage = "", productPrice = 12.0, quantity = 2, status = OrderStatus.PREPARING, isSale = false),
+        Order(id = "4", productName = "Brownie de Chocolate", productImage = "", productPrice = 4.5, quantity = 3, status = OrderStatus.PENDING, isSale = true)
     )
 
     private val _state = MutableStateFlow(OrdersState())

@@ -1,7 +1,7 @@
 package com.example.marketuniversitario.feature.orders.data.models
 
-import com.example.marketuniversitario.feature.orders.domain.models.Order
-import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
+import com.example.marketuniversitario.feature.orders.domain.model.Order
+import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
 import com.google.firebase.firestore.DocumentId
 
 data class OrderEntity(

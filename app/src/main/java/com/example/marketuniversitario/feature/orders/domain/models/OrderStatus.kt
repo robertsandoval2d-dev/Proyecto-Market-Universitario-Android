@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.orders.domain.models
+package com.example.marketuniversitario.feature.orders.domain.model
 
 enum class OrderStatus(val displayName: String) {
     PENDING("Pendiente"),

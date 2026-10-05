@@ -24,6 +24,7 @@ import com.example.marketuniversitario.feature.business.navigation.businessGraph
 import com.example.marketuniversitario.feature.home.ui.home.HomeRoute
 import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 import com.example.marketuniversitario.feature.main.ui.util.BottomNavigationBar
+import com.example.marketuniversitario.feature.orders.ui.orders.OrdersRoute
 
 @Composable
 fun MainRoute(rootNavController: NavHostController) {
@@ -84,9 +85,7 @@ fun MainScreen(
             }
             businessGraph(bottomNavController, rootNavController)
             composable(BottomNavItem.Orders.route) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Pantalla de Pedidos")
-                }
+                OrdersRoute()
             }
             composable(BottomNavItem.Profile.route) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

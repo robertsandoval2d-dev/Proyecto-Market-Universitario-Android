@@ -23,6 +23,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
+import com.example.marketuniversitario.feature.orders.domain.model.Order
+import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun OrdersRoute(
@@ -96,7 +101,7 @@ fun OrdersScreen(
 
 @Composable
 fun OrderCard(
-    order: OrderMock,
+    order: Order,
     onEvent: (OrdersEvent) -> Unit
 ) {
     // Determinar colores del "Chip" de estado
@@ -122,8 +127,9 @@ fun OrderCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val dateStr = SimpleDateFormat("dd MMM, hh:mm a", Locale.US).format(Date(order.createdAt))
                 Text(
-                    text = order.date,
+                    text = dateStr,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -148,10 +154,10 @@ fun OrderCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Imagen del Producto
-                if (order.imageUrl.isNotBlank()) {
+                if (order.productImage.isNotBlank()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(order.imageUrl)
+                            .data(order.productImage)
                             .crossfade(true)
                             .build(),
                         contentDescription = order.productName,
@@ -189,7 +195,7 @@ fun OrderCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Total: S/ ${"%.2f".format(order.price * order.quantity)}",
+                        text = "Total: S/ ${"%.2f".format(order.productPrice * order.quantity)}",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
@@ -255,14 +261,13 @@ fun OrdersScreenSalesPreview() {
             state = OrdersState(
                 selectedTab = OrderTab.SALES,
                 orders = listOf(
-                    OrderMock(
+                    Order(
                         id = "1",
                         productName = "Brownie de Chocolate",
-                        imageUrl = "",
-                        price = 4.5,
+                        productImage = "",
+                        productPrice = 4.5,
                         quantity = 3,
                         status = OrderStatus.PENDING,
-                        date = "04 Oct, 02:20 PM",
                         isSale = true
                     )
                 )
@@ -282,24 +287,22 @@ fun OrdersScreenPurchasesPreview() {
             state = OrdersState(
                 selectedTab = OrderTab.PURCHASES,
                 orders = listOf(
-                    OrderMock(
+                    Order(
                         id = "2",
                         productName = "Menú Almuerzo - FISI",
-                        imageUrl = "",
-                        price = 12.0,
+                        productImage = "",
+                        productPrice = 12.0,
                         quantity = 2,
                         status = OrderStatus.PREPARING,
-                        date = "04 Oct, 11:15 AM",
                         isSale = false
                     ),
-                    OrderMock(
+                    Order(
                         id = "3",
                         productName = "Calculadora Científica Casio",
-                        imageUrl = "",
-                        price = 45.0,
+                        productImage = "",
+                        productPrice = 45.0,
                         quantity = 1,
                         status = OrderStatus.READY_FOR_PICKUP,
-                        date = "04 Oct, 10:30 AM",
                         isSale = false
                     )
                 )

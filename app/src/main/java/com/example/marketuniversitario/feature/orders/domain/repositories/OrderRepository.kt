@@ -1,8 +1,8 @@
 package com.example.marketuniversitario.feature.orders.domain.repositories
 
+import com.example.marketuniversitario.feature.orders.domain.model.Order
+import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
 import com.example.marketuniversitario.feature.orders.domain.models.Message
-import com.example.marketuniversitario.feature.orders.domain.models.Order
-import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
 import kotlinx.coroutines.flow.Flow
 
 interface OrderRepository {
