@@ -36,7 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
-import com.example.marketuniversitario.feature.home.ui.components.ProductQuickViewBottomSheet
+import com.example.marketuniversitario.feature.home.ui.components.ProductQuickView.ProductQuickViewBottomSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,7 +55,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
 import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
+import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
 import com.example.marketuniversitario.feature.home.domain.models.UserSummary
+import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestDialog
+import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestErrorDialog
+import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestStatus
+import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestSuccessDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +70,7 @@ fun HomeScreen(
     onEvent: (HomeEvent) -> Unit,
 ) {
     val selectedProduct = state.selectedProduct
+    val requestProduct = state.requestProduct
     if (selectedProduct != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ProductQuickViewBottomSheet(
@@ -72,8 +78,8 @@ fun HomeScreen(
             sheetState = sheetState,
             onDismiss = { onEvent(HomeEvent.SelectProductQuickView(null)) },
             onRequestOrderClick = { product ->
+                onEvent(HomeEvent.RequestProductView(product))
                 onEvent(HomeEvent.SelectProductQuickView(null))
-                // TODO: Iniciar flujo de solicitud del pedido
             },
             onNavigateToBusiness = { businessId ->
                 onEvent(HomeEvent.SelectProductQuickView(null))
@@ -84,6 +90,49 @@ fun HomeScreen(
                 onNavigateToItem(productId)
             }
         )
+    }
+    if (requestProduct != null) {
+        OrderRequestDialog(
+            product = requestProduct,
+            onDismiss = {
+                onEvent(
+                    HomeEvent.RequestProductView(null)
+                )
+            },
+
+            onConfirmOrder = { quantity, note ->
+                onEvent(HomeEvent.RequestOrder(
+                    OrderRequest(
+                        product = requestProduct,
+                        quantity = quantity,
+                        note = note
+                    )
+                ))
+            }
+        )
+    }
+    when (val status = state.orderRequestStatus) {
+        OrderRequestStatus.Idle -> Unit
+        OrderRequestStatus.Loading -> {
+            // Opcional: mostrar loading
+        }
+
+        OrderRequestStatus.Success -> {
+                OrderRequestSuccessDialog(
+                    onDismiss = {
+                        onEvent(HomeEvent.DismissOrderRequestStatus)
+                    }
+                )
+        }
+
+        is OrderRequestStatus.Error -> {
+                OrderRequestErrorDialog(
+                    message = status.message,
+                    onDismiss = {
+                        onEvent(HomeEvent.DismissOrderRequestStatus)
+                    }
+                )
+        }
     }
 
     Column(

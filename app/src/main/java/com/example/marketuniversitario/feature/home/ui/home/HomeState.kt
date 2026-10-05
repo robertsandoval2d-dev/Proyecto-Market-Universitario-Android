@@ -1,9 +1,11 @@
 package com.example.marketuniversitario.feature.home.ui.home
 
 import android.net.Uri
-import com.example.marketuniversitario.feature.business.domain.models.Product
 import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
+import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
 import com.example.marketuniversitario.feature.home.domain.models.UserSummary
+import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestStatus
+import com.example.marketuniversitario.feature.orders.domain.model.Order
 
 sealed interface HomeStatus {
     object Idle : HomeStatus
@@ -29,8 +31,12 @@ data class HomeState(
     //Lista productos
     val products: List<FeedProduct> = emptyList(),
     val selectedProduct: FeedProduct? = null,
+    val requestProduct: FeedProduct? = null,
 
-    val status: HomeStatus = HomeStatus.Idle
+    val requestOrder: Order? = null,
+
+    val status: HomeStatus = HomeStatus.Idle,
+    val orderRequestStatus: OrderRequestStatus = OrderRequestStatus.Idle
 )
 
 sealed interface HomeEvent {
@@ -43,6 +49,11 @@ sealed interface HomeEvent {
     object LoadFeed : HomeEvent
     object Refresh : HomeEvent
     data class SelectProductQuickView(val product: FeedProduct?) : HomeEvent
+    data class RequestProductView(val product: FeedProduct?) : HomeEvent
+    data class RequestOrder(val order: OrderRequest) : HomeEvent
+
+    object DismissOrderRequestStatus : HomeEvent
+
 
     //Eventos barra búsqueda
     data class QueryChanged(val query: String) : HomeEvent
