@@ -43,7 +43,6 @@ fun WelcomeScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header: Botón de retroceso y Logo
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -1,6 +1,6 @@
 package com.example.marketuniversitario.feature.orders.ui.orders
 
-import com.example.marketuniversitario.feature.orders.domain.model.Order
+import com.example.marketuniversitario.feature.orders.domain.models.Order
 
 // Pestañas de la UI
 enum class OrderTab(val title: String) {

@@ -1,8 +1,8 @@
 package com.example.marketuniversitario.feature.orders.ui.orders
 
 import androidx.lifecycle.ViewModel
-import com.example.marketuniversitario.feature.orders.domain.model.Order
-import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
+import com.example.marketuniversitario.feature.orders.domain.models.Order
+import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

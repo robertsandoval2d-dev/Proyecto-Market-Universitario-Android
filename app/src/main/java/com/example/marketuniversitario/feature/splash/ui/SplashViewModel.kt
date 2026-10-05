@@ -21,7 +21,7 @@ class SplashViewModel @Inject constructor (
 
     init {
         //PRUEBAS
-        authRepository.logout()
+//        authRepository.logout()
         viewModelScope.launch {
             delay(2000)
             _destination.value = resolveStartDestination()

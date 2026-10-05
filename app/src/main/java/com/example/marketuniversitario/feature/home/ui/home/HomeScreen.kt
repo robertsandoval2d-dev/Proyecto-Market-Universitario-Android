@@ -35,12 +35,15 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import com.example.marketuniversitario.feature.home.ui.components.ProductQuickViewBottomSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,8 +52,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.SubcomposeAsyncImage
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
-import com.example.marketuniversitario.feature.business.domain.models.Product
+import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
+import com.example.marketuniversitario.feature.home.domain.models.UserSummary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,10 +64,33 @@ fun HomeScreen(
     onNavigateToItem: (String) -> Unit,
     onEvent: (HomeEvent) -> Unit,
 ) {
+    val selectedProduct = state.selectedProduct
+    if (selectedProduct != null) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ProductQuickViewBottomSheet(
+            product = selectedProduct,
+            sheetState = sheetState,
+            onDismiss = { onEvent(HomeEvent.SelectProductQuickView(null)) },
+            onRequestOrderClick = { product ->
+                onEvent(HomeEvent.SelectProductQuickView(null))
+                // TODO: Iniciar flujo de solicitud del pedido
+            },
+            onNavigateToBusiness = { businessId ->
+                onEvent(HomeEvent.SelectProductQuickView(null))
+                // TODO: Navegar al perfil del negocio
+            },
+            onNavigateToFullDetail = { productId ->
+                onEvent(HomeEvent.SelectProductQuickView(null))
+                onNavigateToItem(productId)
+            }
+        )
+    }
+
     Column(
         Modifier.fillMaxSize()
     ) {
         HomeHeader(
+            userSummary = state.userSummary,
             query = state.query,
             onQueryChange = { onEvent(HomeEvent.QueryChanged(it)) },
             onSearchWithImageClick = { onEvent(HomeEvent.ShowSearchOptions) },
@@ -85,7 +113,9 @@ fun HomeScreen(
                     Text("No encontramos productos", Modifier.align(Alignment.Center))
                 else -> HomeContent(
                     products = state.products,
-                    onProductClick = onNavigateToItem
+                    onProductClick = { product ->
+                        onEvent(HomeEvent.SelectProductQuickView(product))
+                    }
                 )
             }
         }
@@ -94,6 +124,7 @@ fun HomeScreen(
 
 @Composable
 fun HomeHeader(
+    userSummary: UserSummary?,
     query: String,
     onQueryChange: (String) -> Unit,
     onSearchWithImageClick : () -> Unit,
@@ -117,17 +148,26 @@ fun HomeHeader(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
 
-                    //Imagen
+                    // Avatar con Inicial del Usuario
+                    val initial = userSummary?.firstName?.trim()?.firstOrNull()?.uppercaseChar()?.toString() ?: "U"
                     Box(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onPrimaryContainer)
-                    )
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = initial,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(text = "Bienvenido 👋", color = MaterialTheme.colorScheme.onPrimaryContainer, fontSize = 12.sp)
-                        Text(text = "SEBITAS", color = MaterialTheme.colorScheme.onPrimaryContainer, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(text = userSummary?.firstName?.ifBlank { "Usuario" } ?: "Usuario", color = MaterialTheme.colorScheme.onPrimaryContainer, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -137,7 +177,7 @@ fun HomeHeader(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onSecondary)
-                        .clickable { /* TODO */ },
+                        .clickable { onNotificationClick() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones", tint = MaterialTheme.colorScheme.secondary)
@@ -223,8 +263,8 @@ fun HomeHeader(
 
 @Composable
 fun HomeContent(
-    products: List<Product>,
-    onProductClick: (String) -> Unit,
+    products: List<FeedProduct>,
+    onProductClick: (FeedProduct) -> Unit,
     modifier: Modifier = Modifier
 ){
     LazyVerticalGrid (
@@ -247,7 +287,7 @@ fun HomeContent(
         items(items = products, key = { it.id }) { product ->
             ProductCard(
                 product = product,
-                onClick = { onProductClick(product.id) }
+                onClick = { onProductClick(product) }
             )
         }
     }
@@ -255,44 +295,80 @@ fun HomeContent(
 
 @Composable
 fun ProductCard(
-    product: Product,
+    product: FeedProduct,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
-        shape = MaterialTheme.shapes.small,
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.small)
+            .clip(MaterialTheme.shapes.medium)
             .clickable(onClick = onClick)
     ) {
         Column {
-            //Imagen
+            // Imagen del producto con Coil
             Box(
-                Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .background(MaterialTheme.colorScheme.primary)
-            )
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                contentAlignment = Alignment.Center
+            ) {
+                val imageUrl = product.imageUrl
+                if (imageUrl.isNotBlank()) {
+                    SubcomposeAsyncImage(
+                        model = imageUrl,
+                        contentDescription = product.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        loading = {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                            }
+                        },
+                        error = {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = "Sin imagen",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                        }
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = "Sin imagen",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
             Column(
-                Modifier.padding(12.dp)
+                modifier = Modifier.padding(12.dp)
             ) {
                 Text(
                     text = product.name,
                     fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = product.businessName,
+                    text = product.businessName.ifBlank { "Negocio universitario" },
                     style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "S/ %.2f".format(product.price),
                     fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
