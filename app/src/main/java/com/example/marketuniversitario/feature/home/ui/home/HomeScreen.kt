@@ -37,7 +37,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import com.example.marketuniversitario.feature.home.ui.components.ProductQuickView.ProductQuickViewBottomSheet
+import com.example.marketuniversitario.feature.home.ui.components.SearchOptions.SearchWithImageBottomSheet
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -88,6 +90,18 @@ fun HomeScreen(
             onNavigateToFullDetail = { productId ->
                 onEvent(HomeEvent.SelectProductQuickView(null))
                 onNavigateToItem(productId)
+            }
+        )
+    }
+    if (state.showSearchOptions) {
+        val searchSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        SearchWithImageBottomSheet(
+            sheetState = searchSheetState,
+            onDismiss = { onEvent(HomeEvent.DismissSearchOptions) },
+            onTagSelected = { tag ->
+                onEvent(HomeEvent.DismissSearchOptions)
+                onEvent(HomeEvent.QueryChanged(tag))
+                onEvent(HomeEvent.Search)
             }
         )
     }
@@ -432,6 +446,10 @@ fun HomeRoute(
 )
 {
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect (Unit) {
+        viewModel.onEvent(HomeEvent.Refresh)
+    }
 
     HomeScreen(
         state = state,
