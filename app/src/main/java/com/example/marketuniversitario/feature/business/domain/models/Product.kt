@@ -15,6 +15,7 @@ data class Product(
     val category: String = "",
     val images: List<String> = emptyList(),
     val stock: Int? = null,
+    val reservedStock: Int? = 0,
     val isAvailable: Boolean = true,
 
     // --- CAMPOS CLAVE PARA SISTEMAS DE RECOMENDACIÓN IA ---

@@ -2,7 +2,6 @@ package com.example.marketuniversitario.feature.orders.domain.usecases
 
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import com.example.marketuniversitario.feature.business.domain.repositories.BusinessRepository
-import com.example.marketuniversitario.feature.business.domain.repositories.ProductRepository
 import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
 import com.example.marketuniversitario.feature.orders.domain.model.Order
 import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
@@ -15,7 +14,7 @@ class CreateOrderRequestUseCase @Inject constructor(
     private val orderRepository: OrderRepository,
     private val businessRepository: BusinessRepository,
     private val userRepository: UserRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
 ) {
     suspend operator fun invoke(request: OrderRequest): Result<Order> {
         val uid = authRepository.getCurrentUserId()?: throw Exception("No se encontró el usuario actual")

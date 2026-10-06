@@ -17,6 +17,7 @@ data class ProductRoomEntity(
     val category: String,
     val images: String, // Comma-separated list of image URLs
     val stock: Int?,
+    val reservedStock: Int? = 0,
     val isAvailable: Boolean,
     val tags: String, // Comma-separated list of tags
     val views: Int,
@@ -36,6 +37,7 @@ fun Product.toRoomEntity(isSynced: Boolean = false) = ProductRoomEntity(
     category = this.category,
     images = this.images.joinToString(","),
     stock = this.stock,
+    reservedStock = this.reservedStock,
     isAvailable = this.isAvailable,
     tags = this.tags.joinToString(","),
     views = this.views,
@@ -55,6 +57,7 @@ fun ProductRoomEntity.toDomain() = Product(
     category = this.category,
     images = if (this.images.isBlank()) emptyList() else this.images.split(","),
     stock = this.stock,
+    reservedStock = this.reservedStock,
     isAvailable = this.isAvailable,
     tags = if (this.tags.isBlank()) emptyList() else this.tags.split(","),
     views = this.views,
