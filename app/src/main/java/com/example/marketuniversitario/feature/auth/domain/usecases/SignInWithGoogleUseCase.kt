@@ -28,7 +28,8 @@ class SignInWithGoogleUseCase @Inject constructor(
                 name = session.displayName.orEmpty(),
                 email = session.email,
                 hasBusiness = false,
-                businessId = null
+                businessId = null,
+                photoUrl = session.photoUrl
             )
             userRepository.saveUser(newUser)
                 .onFailure {

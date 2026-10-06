@@ -20,7 +20,8 @@ class AuthRepositoryImpl @Inject constructor(
                 uid = user.uid,
                 email = user.email.orEmpty(),
                 displayName = user.displayName,
-                isEmailVerified = user.isEmailVerified
+                isEmailVerified = user.isEmailVerified,
+                photoUrl = user.photoUrl?.toString()
             ))
         } catch (e: Exception) {
             Result.failure(AuthErrorMapper.map(e))
@@ -38,7 +39,8 @@ class AuthRepositoryImpl @Inject constructor(
                 uid = user.uid,
                 email = user.email.orEmpty(),
                 displayName = user.displayName,
-                isEmailVerified = user.isEmailVerified
+                isEmailVerified = user.isEmailVerified,
+                photoUrl = user.photoUrl?.toString()
             ))
         } catch (e: Exception) {
             Result.failure(AuthErrorMapper.map(e))
@@ -53,7 +55,8 @@ class AuthRepositoryImpl @Inject constructor(
                 uid = user.uid,
                 email = user.email.orEmpty(),
                 displayName = user.displayName,
-                isEmailVerified = user.isEmailVerified
+                isEmailVerified = user.isEmailVerified,
+                photoUrl = user.photoUrl?.toString()
             ))
         } catch (e: Exception) {
             Result.failure(AuthErrorMapper.map(e))
@@ -99,7 +102,8 @@ class AuthRepositoryImpl @Inject constructor(
                     uid = user.uid,
                     email = user.email.orEmpty(),
                     displayName = user.displayName,
-                    isEmailVerified = user.isEmailVerified
+                    isEmailVerified = user.isEmailVerified,
+                    photoUrl = user.photoUrl?.toString()
                 )
             )
         } catch (e: Exception) {

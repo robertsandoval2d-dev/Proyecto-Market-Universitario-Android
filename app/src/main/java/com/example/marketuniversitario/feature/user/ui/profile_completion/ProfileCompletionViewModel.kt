@@ -53,7 +53,8 @@ class ProfileCompletionViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             email = user.email,
-                            name = user.name
+                            name = user.name,
+                            photoUri = user.photoUrl
                         )
                     }
                 }
@@ -149,8 +150,8 @@ class ProfileCompletionViewModel @Inject constructor(
         }
 
         // Validación final
-        if (currentState.name.isBlank() || currentState.phone.isBlank() || currentState.faculty.isBlank()) {
-            _state.update { it.copy(status = ProfileCompletionStatus.Error("Por favor, completa los campos obligatorios")) }
+        if (currentState.name.isBlank() || currentState.faculty.isBlank() || currentState.phone.length != 9) {
+            _state.update { it.copy(status = ProfileCompletionStatus.Error("Por favor, completa los campos obligatorios correctamente")) }
             return
         }
 
@@ -162,21 +163,17 @@ class ProfileCompletionViewModel @Inject constructor(
                     var uploadedPhotoUrl: String? = null
 
                     // Subir a Storage
-                    /*
                     if (!currentState.photoUri.isNullOrBlank() && !currentState.photoUri.startsWith("http")) {
                         val uploadResult = uploadProfileImageUseCase(uid, currentState.photoUri)
-                        uploadResult.onSuccess { url ->
-                            uploadedPhotoUrl = url
-                        }.onFailure { error ->
+
+                        // Si falla, actualizamos el estado y salimos del withTimeout de forma segura
+                        uploadedPhotoUrl = uploadResult.getOrElse { error ->
                             _state.update { it.copy(status = ProfileCompletionStatus.Error("Error al subir imagen: ${error.message}")) }
-                            return@launch
+                            return@withTimeout
                         }
                     } else {
                         uploadedPhotoUrl = currentState.photoUri
                     }
-                     */
-                    // Simulacion
-                    uploadedPhotoUrl = null
 
                     completeUserProfileUseCase(
                         userId = uid,

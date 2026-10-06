@@ -1,6 +1,5 @@
 package com.example.marketuniversitario.feature.main.ui
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -11,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
@@ -25,6 +23,7 @@ import com.example.marketuniversitario.feature.home.ui.home.HomeRoute
 import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 import com.example.marketuniversitario.feature.main.ui.util.BottomNavigationBar
 import com.example.marketuniversitario.feature.orders.ui.orders.OrdersRoute
+import com.example.marketuniversitario.feature.profile.navigation.profileGraph
 
 @Composable
 fun MainRoute(rootNavController: NavHostController) {
@@ -87,11 +86,13 @@ fun MainScreen(
             composable(BottomNavItem.Orders.route) {
                 OrdersRoute()
             }
-            composable(BottomNavItem.Profile.route) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Pantalla de Perfil")
-                }
-            }
+            profileGraph(
+                navController = bottomNavController,
+                onNavigateToEditProfile = { bottomNavController.navigate("edit_profile") },
+                onNavigateToPreferences = { bottomNavController.navigate("preferences") },
+                onNavigateToTerms = { bottomNavController.navigate("terms") },
+                onLogoutSuccess = { rootNavController.navigate("welcome") { popUpTo(0) } }
+            )
         }
     }
 }

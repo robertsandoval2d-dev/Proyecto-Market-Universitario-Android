@@ -5,6 +5,8 @@ import com.example.marketuniversitario.feature.user.data.models.toDomain
 import com.example.marketuniversitario.feature.user.data.models.toEntity
 import com.example.marketuniversitario.feature.user.domain.model.User
 import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -30,6 +32,10 @@ class UserRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override fun getUserStream(userId: String): Flow<User?> {
+        return remoteDataSource.getUserStream(userId).map { it?.toDomain() }
     }
 
     override suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?): Result<Unit> {

@@ -3,6 +3,9 @@ package com.example.marketuniversitario.feature.user.data.datasources
 import com.example.marketuniversitario.feature.user.data.models.UserEntity
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.snapshots
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
@@ -16,6 +19,13 @@ class UserRemoteDataSource @Inject constructor(
             .document(userEntity.id)
             .set(userEntity)
             .await()
+    }
+
+    fun getUserStream(userId: String): Flow<UserEntity?> {
+        return firestore.collection("users")
+            .document(userId)
+            .snapshots()
+            .map { it.toObject(UserEntity::class.java) }
     }
 
     suspend fun getUser(userId: String): UserEntity? {

@@ -255,8 +255,12 @@ fun Step1PersonalData(
             leadingIcon = { Icon(Icons.Filled.Person, "Nombre") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            isError = state.nameError != null,
-            supportingText = if (state.nameError != null) { { Text(state.nameError) } } else null
+            isError = state.name.isBlank(),
+            supportingText = {
+                if (state.name.isBlank()) {
+                    Text("Campo obligatorio")
+                }
+            }
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -293,14 +297,24 @@ fun Step1PersonalData(
 
         OutlinedTextField(
             value = state.phone,
-            onValueChange = { onEvent(ProfileCompletionEvent.PhoneChanged(it)) },
+            onValueChange = { 
+                if (it.all { char -> char.isDigit() } && it.length <= 9) { 
+                    onEvent(ProfileCompletionEvent.PhoneChanged(it)) 
+                }
+            },
             label = { Text("Celular") },
             leadingIcon = { Icon(Icons.Filled.Phone, "Celular") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            isError = state.phoneError != null,
-            supportingText = if (state.phoneError != null) { { Text(state.phoneError) } } else null
+            isError = state.phone.isBlank() || state.phone.length < 9,
+            supportingText = {
+                if (state.phone.isBlank()) {
+                    Text("Campo obligatorio")
+                } else if (state.phone.length < 9) {
+                    Text("Debe tener exactamente 9 dígitos")
+                }
+            }
         )
         Spacer(modifier = Modifier.height(16.dp))
 
