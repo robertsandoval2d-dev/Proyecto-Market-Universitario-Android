@@ -84,7 +84,11 @@ fun MainScreen(
             }
             businessGraph(bottomNavController, rootNavController)
             composable(BottomNavItem.Orders.route) {
-                OrdersRoute()
+                OrdersRoute(
+                    onNavigateToChat = { orderId ->
+                        rootNavController.navigate("chat/$orderId")
+                    }
+                )
             }
             profileGraph(
                 navController = bottomNavController,

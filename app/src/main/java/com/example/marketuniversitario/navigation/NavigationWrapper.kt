@@ -39,5 +39,18 @@ fun NavigationWrapper(
                 onNavigateBack = { navHostController.navigateUp() }
             )
         }
+
+        composable(
+            route = "chat/{orderId}",
+            arguments = listOf(
+                navArgument("orderId") {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            com.example.marketuniversitario.feature.orders.ui.chat.OrderChatRoute(
+                onBackClick = { navHostController.navigateUp() }
+            )
+        }
     }
 }

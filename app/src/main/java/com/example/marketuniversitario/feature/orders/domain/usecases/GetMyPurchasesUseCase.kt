@@ -1,7 +1,7 @@
 package com.example.marketuniversitario.feature.orders.domain.usecases
 
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
-import com.example.marketuniversitario.feature.orders.domain.model.Order
+import com.example.marketuniversitario.feature.orders.domain.models.Order
 import com.example.marketuniversitario.feature.orders.domain.repositories.OrderRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow

@@ -6,7 +6,7 @@ import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
 import com.example.marketuniversitario.feature.home.domain.usecases.GetFeedProductsUseCase
 import com.example.marketuniversitario.feature.home.domain.usecases.GetUserSummaryUseCase
 import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestStatus
-import com.example.marketuniversitario.feature.orders.domain.model.Order
+import com.example.marketuniversitario.feature.orders.domain.models.Order
 import com.example.marketuniversitario.feature.orders.domain.usecases.CreateOrderRequestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -1,19 +1,21 @@
 package com.example.marketuniversitario.feature.orders.data.repositories
 
+import android.net.Uri
+import com.example.marketuniversitario.feature.orders.data.datasources.MessageRemoteDataSource
 import com.example.marketuniversitario.feature.orders.data.datasources.OrderRemoteDataSource
-import com.example.marketuniversitario.feature.orders.data.models.toEntity
 import com.example.marketuniversitario.feature.orders.data.models.toDomain
-import com.example.marketuniversitario.feature.orders.domain.model.Order
-import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
+import com.example.marketuniversitario.feature.orders.data.models.toEntity
+import com.example.marketuniversitario.feature.orders.domain.models.Order
+import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
 import com.example.marketuniversitario.feature.orders.domain.models.Message
 import com.example.marketuniversitario.feature.orders.domain.repositories.OrderRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class OrderRepositoryImpl @Inject constructor(
-    private val remoteDataSource: OrderRemoteDataSource
+    private val remoteDataSource: OrderRemoteDataSource,
+    private val messageRemoteDataSource: MessageRemoteDataSource
 ) : OrderRepository {
 
     override suspend fun getOrders(): Result<List<Order>> {
@@ -53,8 +55,33 @@ class OrderRepositoryImpl @Inject constructor(
 
 
 
+    override fun getOrder(orderId: String): Flow<Order?> {
+        return remoteDataSource.getOrderFlow(orderId).map { entity ->
+            entity?.toDomain()
+        }
+    }
+
     override fun getMessagesForOrder(orderId: String): Flow<List<Message>> {
-        // TODO: Implementar consulta a Firestore (Subcolección messages)
-        return emptyFlow()
+        return messageRemoteDataSource.getMessages(orderId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun sendTextMessage(message: Message): Result<Unit> {
+        return try {
+            messageRemoteDataSource.sendTextMessage(message.toEntity())
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendVoiceMessage(message: Message, localAudioUri: Uri): Result<Unit> {
+        return try {
+            messageRemoteDataSource.sendVoiceMessage(message.toEntity(), localAudioUri)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

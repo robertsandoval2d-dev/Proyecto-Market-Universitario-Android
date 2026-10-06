@@ -23,15 +23,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
-import com.example.marketuniversitario.feature.orders.domain.model.Order
-import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
+import com.example.marketuniversitario.feature.orders.domain.models.Order
+import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
 fun OrdersRoute(
-    viewModel: OrdersViewModel = hiltViewModel()
+    viewModel: OrdersViewModel = hiltViewModel(),
+    onNavigateToChat: (String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -41,14 +42,16 @@ fun OrdersRoute(
 
     OrdersScreen(
         state = state,
-        onEvent = viewModel::onEvent
+        onEvent = viewModel::onEvent,
+        onNavigateToChat = onNavigateToChat
     )
 }
 
 @Composable
 fun OrdersScreen(
     state: OrdersState,
-    onEvent: (OrdersEvent) -> Unit
+    onEvent: (OrdersEvent) -> Unit,
+    onNavigateToChat: (String) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -115,7 +118,7 @@ fun OrdersScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(state.currentOrders) { order ->
-                    OrderCard(order = order, onEvent = onEvent)
+                    OrderCard(order = order, onEvent = onEvent, onNavigateToChat = onNavigateToChat)
                 }
             }
         }
@@ -125,7 +128,8 @@ fun OrdersScreen(
 @Composable
 fun OrderCard(
     order: Order,
-    onEvent: (OrdersEvent) -> Unit
+    onEvent: (OrdersEvent) -> Unit,
+    onNavigateToChat: (String) -> Unit
 ) {
     // Determinar colores del "Chip" de estado
     val (statusBgColor, statusTextColor) = when (order.status) {
@@ -273,7 +277,7 @@ fun OrderCard(
                 } else if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { /* Navegar al Chat (Siguiente fase del proyecto) */ },
+                        onClick = { onNavigateToChat(order.id) },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.fillMaxWidth().height(40.dp)
                     ) {
@@ -285,7 +289,7 @@ fun OrderCard(
                 if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { /* Navegar al Chat (Siguiente fase del proyecto) */ },
+                        onClick = { onNavigateToChat(order.id) },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         modifier = Modifier.fillMaxWidth().height(40.dp)
                     ) {

@@ -1,6 +1,6 @@
 package com.example.marketuniversitario.feature.orders.domain.usecases
 
-import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
+import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
 import com.example.marketuniversitario.feature.orders.domain.repositories.OrderRepository
 import javax.inject.Inject
 

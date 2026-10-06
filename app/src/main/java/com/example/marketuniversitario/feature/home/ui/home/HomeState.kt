@@ -5,7 +5,7 @@ import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
 import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
 import com.example.marketuniversitario.feature.home.domain.models.UserSummary
 import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestStatus
-import com.example.marketuniversitario.feature.orders.domain.model.Order
+import com.example.marketuniversitario.feature.orders.domain.models.Order
 
 sealed interface HomeStatus {
     object Idle : HomeStatus

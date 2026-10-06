@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.example.marketuniversitario.feature.business.data.datasources.ProductDao
 import com.example.marketuniversitario.feature.business.data.models.ProductRoomEntity
 
-@Database(entities = [ProductRoomEntity::class], version = 1, exportSchema = false)
+@Database(entities = [ProductRoomEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
 }

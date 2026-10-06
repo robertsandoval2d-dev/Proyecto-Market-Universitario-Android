@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.orders.domain.model
+package com.example.marketuniversitario.feature.orders.domain.models
 
 data class Order(
     val id: String = "",

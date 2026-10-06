@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
-import com.example.marketuniversitario.feature.orders.domain.model.OrderStatus
+import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
 import com.example.marketuniversitario.feature.orders.domain.usecases.GetMyPurchasesUseCase
 import com.example.marketuniversitario.feature.orders.domain.usecases.GetMySalesUseCase
 import com.example.marketuniversitario.feature.orders.domain.usecases.UpdateOrderStatusUseCase
