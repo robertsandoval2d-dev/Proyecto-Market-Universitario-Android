@@ -35,6 +35,10 @@ fun OrdersRoute(
 ) {
     val state by viewModel.state.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(OrdersEvent.Refresh)
+    }
+
     OrdersScreen(
         state = state,
         onEvent = viewModel::onEvent
@@ -52,33 +56,52 @@ fun OrdersScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         // Pestañas (Tabs) superiores
-        TabRow(
-            selectedTabIndex = state.selectedTab.ordinal,
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.primary,
-            indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    modifier = Modifier.tabIndicatorOffset(tabPositions[state.selectedTab.ordinal]),
-                    color = MaterialTheme.colorScheme.primary
-                )
+        if (state.hasBusiness) {
+            TabRow(
+                selectedTabIndex = state.selectedTab.ordinal,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier.tabIndicatorOffset(tabPositions[state.selectedTab.ordinal]),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            ) {
+                OrderTab.entries.forEach { tab ->
+                    Tab(
+                        selected = state.selectedTab == tab,
+                        onClick = { onEvent(OrdersEvent.TabChanged(tab)) },
+                        text = {
+                            Text(
+                                text = tab.title,
+                                fontWeight = if (state.selectedTab == tab) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    )
+                }
             }
-        ) {
-            OrderTab.entries.forEach { tab ->
-                Tab(
-                    selected = state.selectedTab == tab,
-                    onClick = { onEvent(OrdersEvent.TabChanged(tab)) },
-                    text = {
-                        Text(
-                            text = tab.title,
-                            fontWeight = if (state.selectedTab == tab) FontWeight.Bold else FontWeight.Normal
-                        )
-                    }
-                )
-            }
+        } else {
+            Text(
+                text = "Mis Compras",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+            )
         }
 
         // Lista de Pedidos
-        if (state.orders.isEmpty()) {
+        if (state.errorMessage != null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = state.errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        } else if (state.currentOrders.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "No tienes pedidos aquí aún.",
@@ -91,7 +114,7 @@ fun OrdersScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(state.orders) { order ->
+                items(state.currentOrders) { order ->
                     OrderCard(order = order, onEvent = onEvent)
                 }
             }
@@ -189,6 +212,17 @@ fun OrderCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    
+                    if (order.isSale) {
+                        val buyerDisplay = order.buyerName.takeIf { it.isNotBlank() }
+                            ?: "ID-${order.buyerId.take(6)}"
+                        Text(
+                            text = "Comprador: $buyerDisplay",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
                     Text(
                         text = "Cantidad: ${order.quantity}",
                         style = MaterialTheme.typography.bodyMedium,
@@ -204,47 +238,59 @@ fun OrderCard(
             }
 
             // --- ACCIONES DEPENDIENDO DEL ROL Y ESTADO ---
-            // Solo si somos el vendedor (Mis Ventas) y está Pendiente
-            if (order.isSale && order.status == OrderStatus.PENDING) {
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                Spacer(modifier = Modifier.height(8.dp))
+            
+            // Acciones para Vendedor
+            if (order.isSale) {
+                if (order.status == OrderStatus.PENDING) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    OutlinedButton(
-                        onClick = { onEvent(OrdersEvent.RejectOrder(order.id)) },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        modifier = Modifier.height(36.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Text("Rechazar")
+                        OutlinedButton(
+                            onClick = { onEvent(OrdersEvent.RejectOrder(order.id)) },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            modifier = Modifier.height(36.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                        ) {
+                            Text("Rechazar")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { onEvent(OrdersEvent.AcceptOrder(order.id)) },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.height(36.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                        ) {
+                            Text("Aceptar Pedido")
+                        }
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
+                } else if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP) {
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { onEvent(OrdersEvent.AcceptOrder(order.id)) },
+                        onClick = { /* Navegar al Chat (Siguiente fase del proyecto) */ },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.height(36.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                        modifier = Modifier.fillMaxWidth().height(40.dp)
                     ) {
-                        Text("Aceptar Pedido")
+                        Text("Chat con el Comprador")
                     }
                 }
-            }
-
-            // Si somos compradores y está aceptado, podríamos mostrar un botón de "Coordinar Entrega"
-            if (!order.isSale && (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP)) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = { /* Navegar al Chat (Siguiente fase del proyecto) */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                    modifier = Modifier.fillMaxWidth().height(40.dp)
-                ) {
-                    Text("Coordinar Entrega (Chat)")
+            } else {
+                // Acciones para Comprador (Cliente)
+                if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { /* Navegar al Chat (Siguiente fase del proyecto) */ },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                        modifier = Modifier.fillMaxWidth().height(40.dp)
+                    ) {
+                        Text("Chat con el Vendedor")
+                    }
                 }
             }
         }
@@ -260,7 +306,9 @@ fun OrdersScreenSalesPreview() {
         OrdersScreen(
             state = OrdersState(
                 selectedTab = OrderTab.SALES,
-                orders = listOf(
+                hasBusiness = true,
+                purchases = emptyList(),
+                sales = listOf(
                     Order(
                         id = "1",
                         productName = "Brownie de Chocolate",
@@ -286,7 +334,8 @@ fun OrdersScreenPurchasesPreview() {
         OrdersScreen(
             state = OrdersState(
                 selectedTab = OrderTab.PURCHASES,
-                orders = listOf(
+                hasBusiness = false,
+                purchases = listOf(
                     Order(
                         id = "2",
                         productName = "Menú Almuerzo - FISI",
@@ -305,7 +354,8 @@ fun OrdersScreenPurchasesPreview() {
                         status = OrderStatus.READY_FOR_PICKUP,
                         isSale = false
                     )
-                )
+                ),
+                sales = emptyList()
             ),
             onEvent = {}
         )

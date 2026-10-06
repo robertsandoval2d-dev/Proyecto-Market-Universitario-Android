@@ -11,9 +11,9 @@ interface OrderRepository {
 
     suspend fun createOrder(order: Order): Result<Order>
 
-    suspend fun getOrdersByBuyer(buyerId: String): Result<List<Order>>
+    fun getOrdersByBuyer(buyerId: String): Flow<List<Order>>
 
-    suspend fun getOrdersBySeller(sellerId: String): Result<List<Order>>
+    fun getOrdersBySeller(sellerId: String): Flow<List<Order>>
 
     suspend fun updateOrderStatus(orderId: String, newStatus: OrderStatus): Result<Unit>
 }

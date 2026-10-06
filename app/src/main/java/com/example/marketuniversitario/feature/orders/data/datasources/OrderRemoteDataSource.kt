@@ -2,6 +2,10 @@ package com.example.marketuniversitario.feature.orders.data.datasources
 
 import com.example.marketuniversitario.feature.orders.data.models.OrderEntity
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -49,5 +53,46 @@ class OrderRemoteDataSource @Inject constructor(
         }.await()
 
         return orderDocRef.id
+    }
+
+    suspend fun updateOrderStatus(orderId: String, newStatus: String) {
+        ordersCollection.document(orderId).update(
+            mapOf(
+                "status" to newStatus,
+                "updatedAt" to System.currentTimeMillis()
+            )
+        ).await()
+    }
+
+    fun getOrdersByBuyerFlow(buyerId: String): Flow<List<OrderEntity>> = callbackFlow {
+        val subscription = ordersCollection
+            .whereEqualTo("buyerId", buyerId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val orders = snapshot.toObjects(OrderEntity::class.java)
+                    trySend(orders.sortedByDescending { it.createdAt }).isSuccess
+                }
+            }
+        awaitClose { subscription.remove() }
+    }
+
+    fun getOrdersBySellerFlow(sellerId: String): Flow<List<OrderEntity>> = callbackFlow {
+        val subscription = ordersCollection
+            .whereEqualTo("sellerId", sellerId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val orders = snapshot.toObjects(OrderEntity::class.java)
+                    trySend(orders.sortedByDescending { it.createdAt }).isSuccess
+                }
+            }
+        awaitClose { subscription.remove() }
     }
 }
