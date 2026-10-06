@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.profile.ui.edit_profile
+package com.example.marketuniversitario.feature.user.ui.edit_profile
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest

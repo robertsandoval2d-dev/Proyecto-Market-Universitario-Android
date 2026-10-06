@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.profile.ui.preferences
+package com.example.marketuniversitario.feature.user.ui.preferences
 
 import com.example.marketuniversitario.feature.user.domain.model.User
 

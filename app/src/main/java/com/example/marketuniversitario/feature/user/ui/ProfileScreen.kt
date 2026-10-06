@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.profile.ui
+package com.example.marketuniversitario.feature.user.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

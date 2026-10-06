@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.profile.ui.edit_profile
+package com.example.marketuniversitario.feature.user.ui.edit_profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.profile.ui.terms
+package com.example.marketuniversitario.feature.user.ui.terms
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState

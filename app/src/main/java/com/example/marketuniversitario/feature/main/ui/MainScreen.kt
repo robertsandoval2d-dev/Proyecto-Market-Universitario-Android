@@ -23,7 +23,7 @@ import com.example.marketuniversitario.feature.home.ui.home.HomeRoute
 import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 import com.example.marketuniversitario.feature.main.ui.util.BottomNavigationBar
 import com.example.marketuniversitario.feature.orders.ui.orders.OrdersRoute
-import com.example.marketuniversitario.feature.profile.navigation.profileGraph
+import com.example.marketuniversitario.feature.user.navigation.profileGraph
 
 @Composable
 fun MainRoute(rootNavController: NavHostController) {

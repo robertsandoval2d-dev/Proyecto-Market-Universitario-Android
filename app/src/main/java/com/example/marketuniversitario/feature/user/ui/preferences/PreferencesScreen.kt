@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.profile.ui.preferences
+package com.example.marketuniversitario.feature.user.ui.preferences
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
