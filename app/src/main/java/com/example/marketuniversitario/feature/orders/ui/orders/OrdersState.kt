@@ -14,6 +14,8 @@ data class OrdersState(
     val hasBusiness: Boolean = false,
     val purchases: List<Order> = emptyList(),
     val sales: List<Order> = emptyList(),
+    val currentUserId: String = "",
+    val currentUserName: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 ) {
@@ -27,4 +29,5 @@ sealed interface OrdersEvent {
     data class TabChanged(val tab: OrderTab) : OrdersEvent
     data class AcceptOrder(val orderId: String) : OrdersEvent
     data class RejectOrder(val orderId: String) : OrdersEvent
+    data class CompleteOrder(val orderId: String) : OrdersEvent
 }

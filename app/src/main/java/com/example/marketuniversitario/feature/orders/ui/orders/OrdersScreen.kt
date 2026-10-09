@@ -53,6 +53,8 @@ fun OrdersScreen(
     onEvent: (OrdersEvent) -> Unit,
     onNavigateToChat: (String) -> Unit = {}
 ) {
+    var selectedOrderForRating by remember { mutableStateOf<Order?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -118,10 +120,27 @@ fun OrdersScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(state.currentOrders) { order ->
-                    OrderCard(order = order, onEvent = onEvent, onNavigateToChat = onNavigateToChat)
+                    OrderCard(
+                        order = order,
+                        onEvent = onEvent,
+                        onNavigateToChat = onNavigateToChat,
+                        onRateClick = { selectedOrderForRating = it }
+                    )
                 }
             }
         }
+    }
+
+    selectedOrderForRating?.let { order ->
+        com.example.marketuniversitario.feature.reviews.ui.rating.RatingBottomSheetRoute(
+            productId = order.productId,
+            studentId = state.currentUserId,
+            studentName = state.currentUserName,
+            productName = order.productName,
+            productImageUrl = order.productImage,
+            onDismiss = { selectedOrderForRating = null },
+            onSuccess = { selectedOrderForRating = null }
+        )
     }
 }
 
@@ -129,7 +148,8 @@ fun OrdersScreen(
 fun OrderCard(
     order: Order,
     onEvent: (OrdersEvent) -> Unit,
-    onNavigateToChat: (String) -> Unit
+    onNavigateToChat: (String) -> Unit,
+    onRateClick: (Order) -> Unit
 ) {
     // Determinar colores del "Chip" de estado
     val (statusBgColor, statusTextColor) = when (order.status) {
@@ -142,7 +162,7 @@ fun OrderCard(
 
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceBright),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -283,6 +303,32 @@ fun OrderCard(
                     ) {
                         Text("Chat con el Comprador")
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { onEvent(OrdersEvent.RejectOrder(order.id)) },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            modifier = Modifier.weight(1f).height(36.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("Rechazar")
+                        }
+                        Button(
+                            onClick = { onEvent(OrdersEvent.CompleteOrder(order.id)) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            modifier = Modifier.weight(1f).height(36.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("Completar Venta")
+                        }
+                    }
                 }
             } else {
                 // Acciones para Comprador (Cliente)
@@ -290,10 +336,19 @@ fun OrderCard(
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { onNavigateToChat(order.id) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.fillMaxWidth().height(40.dp)
                     ) {
                         Text("Chat con el Vendedor")
+                    }
+                } else if (order.status == OrderStatus.COMPLETED) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { onRateClick(order) },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.fillMaxWidth().height(40.dp)
+                    ) {
+                        Text("Calificación de Producto")
                     }
                 }
             }
@@ -355,7 +410,7 @@ fun OrdersScreenPurchasesPreview() {
                         productImage = "",
                         productPrice = 45.0,
                         quantity = 1,
-                        status = OrderStatus.READY_FOR_PICKUP,
+                        status = OrderStatus.COMPLETED,
                         isSale = false
                     )
                 ),

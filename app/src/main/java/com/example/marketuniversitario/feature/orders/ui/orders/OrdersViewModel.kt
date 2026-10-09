@@ -42,7 +42,14 @@ class OrdersViewModel @Inject constructor(
             // 1. Verificamos si tiene negocio
             userRepository.getUser(uid).onSuccess { user ->
                 val hasBusiness = user?.hasBusiness == true
-                _state.update { it.copy(hasBusiness = hasBusiness) }
+                val userName = user?.name ?: ""
+                _state.update { 
+                    it.copy(
+                        hasBusiness = hasBusiness,
+                        currentUserId = uid,
+                        currentUserName = userName
+                    ) 
+                }
 
                 // 2. Cargamos las Ventas
                 if (hasBusiness) {
@@ -81,6 +88,7 @@ class OrdersViewModel @Inject constructor(
             }
             is OrdersEvent.AcceptOrder -> updateOrderStatus(event.orderId, OrderStatus.PREPARING)
             is OrdersEvent.RejectOrder -> updateOrderStatus(event.orderId, OrderStatus.REJECTED)
+            is OrdersEvent.CompleteOrder -> updateOrderStatus(event.orderId, OrderStatus.COMPLETED)
         }
     }
 
