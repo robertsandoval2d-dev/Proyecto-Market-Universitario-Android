@@ -337,58 +337,6 @@ fun ProductDetailContent(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Input para agregar nuevo comentario
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = "Deja tu opinión o consulta:",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Calificación con estrellas
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            (1..5).forEach { star ->
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = "Estrella $star",
-                                    tint = if (star <= newCommentRating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clickable { onEvent(ProductDetailEvent.NewRatingChanged(star)) }
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            OutlinedTextField(
-                                value = newCommentText,
-                                onValueChange = { onEvent(ProductDetailEvent.NewCommentChanged(it)) },
-                                placeholder = { Text("Escribe una reseña...") },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            IconButton(
-                                onClick = { onEvent(ProductDetailEvent.AddComment) },
-                                enabled = newCommentText.isNotBlank()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Send,
-                                    contentDescription = "Enviar comentario",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -415,7 +363,10 @@ fun CommentCard(comment: Comment) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -434,9 +385,14 @@ fun CommentCard(comment: Comment) {
                     Text(
                         text = comment.userName,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
                 }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 // Estrellas
                 Row {

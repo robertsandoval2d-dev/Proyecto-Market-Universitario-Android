@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.business.domain.usecases.GetProductUseCase
-import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
+import com.example.marketuniversitario.feature.reviews.domain.usecases.GetReviewsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
     private val getProductUseCase: GetProductUseCase,
+    private val getReviewsUseCase: GetReviewsUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -42,13 +43,29 @@ class ProductDetailViewModel @Inject constructor(
     fun loadProduct(productId: String) {
         viewModelScope.launch {
             _state.update { it.copy(status = ProductDetailStatus.Loading) }
+
+            // Cargar reseñas reales en tiempo real desde el use case de reviews
+            launch {
+                getReviewsUseCase(productId).collect { reviews ->
+                    val comments = reviews.map { review ->
+                        Comment(
+                            id = review.id,
+                            userName = review.studentName.ifBlank { "Estudiante UNMSM" },
+                            rating = review.rating,
+                            text = review.comment,
+                            timestamp = review.createdAt
+                        )
+                    }
+                    _state.update { it.copy(comments = comments) }
+                }
+            }
+
             getProductUseCase(productId)
                 .onSuccess { product ->
                     if (product != null) {
                         _state.update {
                             it.copy(
                                 product = product,
-                                comments = mockComments(),
                                 status = ProductDetailStatus.Success
                             )
                         }
