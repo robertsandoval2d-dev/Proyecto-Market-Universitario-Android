@@ -4,9 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
 import com.example.marketuniversitario.feature.home.domain.usecases.GetFeedProductsUseCase
-import com.example.marketuniversitario.feature.home.domain.usecases.GetFeedUseCase
 import com.example.marketuniversitario.feature.home.domain.usecases.GetUserSummaryUseCase
-import com.example.marketuniversitario.feature.home.domain.usecases.SearchProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job

@@ -2,7 +2,9 @@ package com.example.marketuniversitario.core.database
 
 import android.content.Context
 import androidx.room.Room
+import com.example.marketuniversitario.feature.business.data.datasources.BusinessDao
 import com.example.marketuniversitario.feature.business.data.datasources.ProductDao
+import com.example.marketuniversitario.feature.user.data.datasources.UserDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,5 +30,17 @@ object DatabaseModule {
     @Singleton
     fun provideProductDao(appDatabase: AppDatabase): ProductDao {
         return appDatabase.productDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideBusinessDao(appDatabase: AppDatabase): BusinessDao {
+        return appDatabase.businessDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserDao(appDatabase: AppDatabase): UserDao {
+        return appDatabase.userDao()
     }
 }
