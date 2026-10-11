@@ -48,7 +48,7 @@ fun ProductQuickViewBottomSheet(
     product: FeedProduct,
     sheetState: SheetState,
     onDismiss: () -> Unit,
-    onRequestOrderClick: (FeedProduct) -> Unit,
+    onRequestOrderClick: (productId: String) -> Unit,
     onNavigateToBusiness: (businessId: String) -> Unit,
     onNavigateToFullDetail: (productId: String) -> Unit
 ) {
@@ -56,12 +56,12 @@ fun ProductQuickViewBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .padding(horizontal = 24.dp, vertical = 12.dp)
         ) {
             // Header del Producto (Imagen + Nombre + Precio)
             Row(
@@ -70,9 +70,9 @@ fun ProductQuickViewBottomSheet(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(96.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                        .size(88.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                     contentAlignment = Alignment.Center
                 ) {
                     if (product.imageUrl.isNotBlank()) {
@@ -116,23 +116,22 @@ fun ProductQuickViewBottomSheet(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "S/ %.2f".format(product.price),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Chip/Contenedor del Negocio (Clickeable)
+            // Negocio (Tarjeta sutil clickeable)
             Surface(
                 shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onNavigateToBusiness(product.businessId) }
@@ -147,29 +146,37 @@ fun ProductQuickViewBottomSheet(
                             imageVector = Icons.Default.Storefront,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = product.businessName.ifBlank { "Ver Negocio Universitario" },
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
+                        Column {
+                            Text(
+                                text = "Vendido por",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = product.businessName.ifBlank { "Negocio Universitario" },
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = "Ir al negocio",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Botón Principal: Solicitar Pedido
             Button(
-                onClick = { onRequestOrderClick(product) },
+                onClick = { onRequestOrderClick(product.id) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -192,9 +199,9 @@ fun ProductQuickViewBottomSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Botón Secundario: Ver detalles completos y opiniones
+            // Botón Secundario: Ver detalles completos
             OutlinedButton(
                 onClick = { onNavigateToFullDetail(product.id) },
                 modifier = Modifier
@@ -209,7 +216,7 @@ fun ProductQuickViewBottomSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 }

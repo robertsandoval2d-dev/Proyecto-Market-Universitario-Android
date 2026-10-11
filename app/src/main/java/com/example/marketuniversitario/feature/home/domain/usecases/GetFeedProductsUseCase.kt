@@ -1,7 +1,7 @@
 package com.example.marketuniversitario.feature.home.domain.usecases
 
 import com.example.marketuniversitario.feature.business.domain.repositories.ProductRepository
-import com.example.marketuniversitario.feature.home.data.toFeedProduct
+import com.example.marketuniversitario.feature.home.data.mappers.toFeedProduct
 import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
 import javax.inject.Inject
 

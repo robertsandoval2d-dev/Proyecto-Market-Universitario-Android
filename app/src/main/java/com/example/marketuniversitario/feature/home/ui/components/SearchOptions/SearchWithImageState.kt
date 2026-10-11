@@ -1,17 +1,20 @@
 package com.example.marketuniversitario.feature.home.ui.components.SearchOptions
 
 import android.net.Uri
+import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
 
 sealed interface SearchWithImageStatus {
     object Idle : SearchWithImageStatus
     object Analyzing : SearchWithImageStatus
-    data class Success(val detectedTags: List<String>) : SearchWithImageStatus
+    data class Success(
+        val detectedTags: List<String>,
+        val matchedProducts: List<FeedProduct>
+    ) : SearchWithImageStatus
     data class Error(val message: String) : SearchWithImageStatus
 }
 
 data class SearchWithImageState(
     val selectedImageUri: Uri? = null,
-
     val status: SearchWithImageStatus = SearchWithImageStatus.Idle
 )
 

@@ -22,6 +22,8 @@ import com.example.marketuniversitario.feature.business.navigation.businessGraph
 import com.example.marketuniversitario.feature.home.ui.home.HomeRoute
 import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 import com.example.marketuniversitario.feature.main.ui.util.BottomNavigationBar
+import com.example.marketuniversitario.feature.orders.ui.order_request.OrderRequestDialog
+import com.example.marketuniversitario.feature.orders.ui.order_request.OrderRequestDialogRoute
 import com.example.marketuniversitario.feature.orders.ui.orders.OrdersRoute
 import com.example.marketuniversitario.feature.user.navigation.profileGraph
 
@@ -80,7 +82,17 @@ fun MainScreen(
             )
         ) {
             composable(BottomNavItem.Home.route) {
-                HomeRoute()
+                HomeRoute(
+                    onNavigateToStore = { businessId ->
+                        rootNavController.navigate("view_business/$businessId")
+                    },
+                    onNavigateToItem = { productId ->
+                        rootNavController.navigate("product_detail/$productId")
+                    },
+                    onRequestOrderClick = { productId ->
+                        rootNavController.navigate("request/$productId")
+                    }
+                )
             }
             businessGraph(bottomNavController, rootNavController)
             composable(BottomNavItem.Orders.route) {
@@ -97,6 +109,7 @@ fun MainScreen(
                 onNavigateToTerms = { bottomNavController.navigate("terms") },
                 onLogoutSuccess = { rootNavController.navigate("welcome") { popUpTo(0) } }
             )
+
         }
     }
 }

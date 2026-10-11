@@ -2,13 +2,14 @@ package com.example.marketuniversitario.feature.home.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
+import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
 import com.example.marketuniversitario.feature.home.domain.usecases.GetFeedProductsUseCase
+import com.example.marketuniversitario.feature.home.domain.usecases.GetFeedUseCase
 import com.example.marketuniversitario.feature.home.domain.usecases.GetUserSummaryUseCase
-import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestStatus
-import com.example.marketuniversitario.feature.orders.domain.models.Order
-import com.example.marketuniversitario.feature.orders.domain.usecases.CreateOrderRequestUseCase
+import com.example.marketuniversitario.feature.home.domain.usecases.SearchProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getUserSummaryUseCase: GetUserSummaryUseCase,
     private val getFeedProductsUseCase: GetFeedProductsUseCase,
-    private val createOrderRequestUseCase: CreateOrderRequestUseCase
+//    private val searchProducts: SearchProductsUseCase,
+//    private val getFeed: GetFeedUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -38,13 +40,13 @@ class HomeViewModel @Inject constructor(
 
             is HomeEvent.LoadUser -> loadUser()
             is HomeEvent.SelectProductQuickView -> _state.update { it.copy(selectedProduct = event.product) }
-            is HomeEvent.RequestProductView -> _state.update { it.copy(requestProduct = event.product) }
-            is HomeEvent.RequestOrder -> sendRequest(event.order)
-            is HomeEvent.DismissOrderRequestStatus -> _state.update { it.copy(orderRequestStatus = OrderRequestStatus.Idle) }
-
+            is HomeEvent.RequestProductSelected -> _state.update { it.copy(requestProductId = event.productId) }
 
             is HomeEvent.QueryChanged -> _state.update { it.copy(query = event.query) }
-            is HomeEvent.Search -> search()
+            is HomeEvent.CategorySelected -> _state.update { it.copy(selectedCategory = event.categoryId) }
+            is HomeEvent.TagSelected -> _state.update { it.copy(selectedTagId = event.tagId) }
+//            is HomeEvent.Search -> load()
+
             is HomeEvent.ShowSearchOptions -> _state.update { it.copy(showSearchOptions = true) }
             is HomeEvent.DismissSearchOptions -> _state.update { it.copy(showSearchOptions = false) }
             is HomeEvent.SelectImage -> _state.update { it.copy(selectedImage = event.uri) }
@@ -53,6 +55,24 @@ class HomeViewModel @Inject constructor(
             is HomeEvent.DismissNotification -> _state.update { it.copy(showNotification = false) }
         }
     }
+
+//    private var loadJob: Job? = null
+//
+//    private fun load() {
+//        loadJob?.cancel()
+//        loadJob = viewModelScope.launch {
+//            _state.update { it.copy(status = HomeStatus.Loading) }
+//            val state = _state.value
+//            runCatching {
+//                searchProducts(state.query!!)
+//            }
+//                .onSuccess { list -> _state.update { it.copy(products = list, status = HomeStatus.Success) } }
+//                .onFailure { e ->
+//                    if (e is CancellationException) throw e
+//                    _state.update { it.copy(status = HomeStatus.Error(e.message ?: "Error al cargar productos")) }
+//                }
+//        }
+//    }
 
     private fun loadUser() {
         viewModelScope.launch {
@@ -65,7 +85,7 @@ class HomeViewModel @Inject constructor(
                     )
                 }
             } catch (_: Exception) {
-                // Si el usuario no está aún disponible o falla, mantenemos userSummary como null (la UI usa "Usuario" por defecto)
+
             }
         }
 
@@ -93,35 +113,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun sendRequest(request: OrderRequest){
 
-        viewModelScope.launch {
-            _state.update { it.copy(orderRequestStatus = OrderRequestStatus.Loading) }
-            createOrderRequestUseCase(request)
-                .onSuccess {
-                    _state.update {
-                        it.copy(
-                            requestProduct = null,
-                            orderRequestStatus = OrderRequestStatus.Success
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _state.update {
-                        it.copy(
-                            orderRequestStatus = OrderRequestStatus.Error(error.message ?: "Error al enviar la solicitud")
-                        )
-                    }
-                }
-        }
-    }
 
     private fun refresh() {
         loadUser()
         loadProducts()
     }
 
-    private fun search() {
-    }
 }
 

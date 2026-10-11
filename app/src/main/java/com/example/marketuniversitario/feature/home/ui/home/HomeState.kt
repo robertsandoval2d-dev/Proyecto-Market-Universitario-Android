@@ -1,11 +1,9 @@
 package com.example.marketuniversitario.feature.home.ui.home
 
 import android.net.Uri
+import com.example.marketuniversitario.feature.business.domain.models.ProductCategory
 import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
-import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
 import com.example.marketuniversitario.feature.home.domain.models.UserSummary
-import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestStatus
-import com.example.marketuniversitario.feature.orders.domain.models.Order
 
 sealed interface HomeStatus {
     object Idle : HomeStatus
@@ -21,22 +19,22 @@ data class HomeState(
     val showNotification: Boolean = false,
 
     //Búsqueda
-    val query: String = "",
-//    val selectedCategory: String? = null,
+    val selectedCategory: ProductCategory? = null,
+    val selectedTagId: String? = null,
+    val query: String? = null,
 
     //Other search options
     val showSearchOptions: Boolean = false,
     val selectedImage: Uri = Uri.EMPTY,
 
+    //Solicitar producto
+    val requestProductId: String? = null,
+
     //Lista productos
     val products: List<FeedProduct> = emptyList(),
     val selectedProduct: FeedProduct? = null,
-    val requestProduct: FeedProduct? = null,
-
-    val requestOrder: Order? = null,
 
     val status: HomeStatus = HomeStatus.Idle,
-    val orderRequestStatus: OrderRequestStatus = OrderRequestStatus.Idle
 )
 
 sealed interface HomeEvent {
@@ -49,15 +47,14 @@ sealed interface HomeEvent {
     object LoadFeed : HomeEvent
     object Refresh : HomeEvent
     data class SelectProductQuickView(val product: FeedProduct?) : HomeEvent
-    data class RequestProductView(val product: FeedProduct?) : HomeEvent
-    data class RequestOrder(val order: OrderRequest) : HomeEvent
 
-    object DismissOrderRequestStatus : HomeEvent
-
+    data class RequestProductSelected(val productId: String?) : HomeEvent
 
     //Eventos barra búsqueda
     data class QueryChanged(val query: String) : HomeEvent
-    object Search : HomeEvent
+    data class CategorySelected(val categoryId: ProductCategory?) : HomeEvent
+    data class TagSelected(val tagId: String?) : HomeEvent
+//    object Search : HomeEvent
 
     //Eventos buscar con imagen
     object ShowSearchOptions : HomeEvent

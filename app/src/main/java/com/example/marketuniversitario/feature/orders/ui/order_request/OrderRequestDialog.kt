@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog
+package com.example.marketuniversitario.feature.orders.ui.order_request
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -31,11 +31,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,29 +42,122 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
-import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
+import com.example.marketuniversitario.feature.orders.domain.models.ProductRequest
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OrderRequestDialogRoute(
+    viewModel: OrderRequestViewModel = hiltViewModel(),
+    onDismiss: () -> Unit
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    OrderRequestDialog(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onDismiss = onDismiss
+    )
+}
+
 @Composable
 fun OrderRequestDialog(
-    product: FeedProduct,
-    isLoading: Boolean = false,
-    onDismiss: () -> Unit,
-    onConfirmOrder: (quantity: Int, note: String) -> Unit
+    state: OrderRequestState,
+    onEvent: (OrderRequestEvent) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    var quantity by remember { mutableIntStateOf(1) }
-    var note by remember { mutableStateOf("") }
+    when (val status = state.status) {
+        is OrderRequestStatus.Loading -> {
+            AlertDialog(
+                onDismissRequest = if (state.productRequest == null) onDismiss else ({ }),
+                confirmButton = { },
+                text = {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.5.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "Procesando solicitud...",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            )
+        }
+
+        is OrderRequestStatus.Error -> {
+            OrderRequestErrorDialog(
+                message = status.message,
+                onDismiss = {
+                    onEvent(OrderRequestEvent.Dismiss)
+                    onDismiss()
+                }
+            )
+        }
+
+        is OrderRequestStatus.Success -> {
+            OrderRequestSuccessDialog(
+                onDismiss = {
+                    onEvent(OrderRequestEvent.Dismiss)
+                    onDismiss()
+                }
+            )
+        }
+
+        else -> {
+            val product = state.productRequest
+            if (product != null) {
+                OrderRequestAlertDialog(
+                    product = product,
+                    quantity = state.quantity,
+                    note = state.note,
+                    onDismiss = {
+                        onEvent(OrderRequestEvent.Dismiss)
+                        onDismiss()
+                    },
+                    onQuantityChanged = {
+                        quantity -> onEvent(OrderRequestEvent.QuantityChanged(quantity)) },
+                    onNoteChanged = {
+                        note -> onEvent(OrderRequestEvent.NoteChanged(note)) },
+                    onConfirmOrder = {
+                        val finalRequest = product.copy(
+                            quantity = state.quantity,
+                            note = state.note
+                        )
+                        onEvent(OrderRequestEvent.RequestOrder(finalRequest))
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun OrderRequestAlertDialog(
+    product: ProductRequest,
+    quantity: Int,
+    note: String,
+    onDismiss: () -> Unit,
+    onQuantityChanged: (Int) -> Unit,
+    onNoteChanged: (String) -> Unit,
+    onConfirmOrder: () -> Unit
+) {
     val totalPrice = product.price * quantity
 
     AlertDialog(
-        onDismissRequest = { if (!isLoading) onDismiss() },
+        onDismissRequest = onDismiss,
         shape = RoundedCornerShape(24.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.ShoppingBag,
                     contentDescription = null,
@@ -84,10 +174,7 @@ fun OrderRequestDialog(
             }
         },
         text = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Info abreviada del producto
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -108,7 +195,7 @@ fun OrderRequestDialog(
                                     model = product.imageUrl,
                                     contentDescription = product.name,
                                     contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             }
                         }
@@ -134,21 +221,16 @@ fun OrderRequestDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Selector de Cantidad
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Cantidad:",
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp
-                    )
+                    Text(text = "Cantidad:", fontWeight = FontWeight.Medium, fontSize = 15.sp)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
-                            onClick = { if (quantity > 1) quantity-- },
-                            enabled = quantity > 1 && !isLoading,
+                            onClick = { if (quantity > 1) onQuantityChanged(quantity - 1) },
+                            enabled = quantity > 1,
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer
                             )
@@ -162,8 +244,7 @@ fun OrderRequestDialog(
                             modifier = Modifier.padding(horizontal = 12.dp)
                         )
                         IconButton(
-                            onClick = { quantity++ },
-                            enabled = !isLoading,
+                            onClick = { onQuantityChanged(quantity + 1) },
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer
                             )
@@ -175,17 +256,12 @@ fun OrderRequestDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Precio Total
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Total estimado:",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp
-                    )
+                    Text(text = "Total estimado:", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     Text(
                         text = "S/ %.2f".format(totalPrice),
                         fontWeight = FontWeight.ExtraBold,
@@ -196,11 +272,9 @@ fun OrderRequestDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Nota opcional
                 OutlinedTextField(
                     value = note,
-                    onValueChange = { note = it },
-                    enabled = !isLoading,
+                    onValueChange = onNoteChanged,
                     label = { Text("Nota para el emprendedor (opcional)") },
                     placeholder = { Text("Ej: Entregar en la biblioteca a las 3pm") },
                     modifier = Modifier.fillMaxWidth(),
@@ -213,26 +287,14 @@ fun OrderRequestDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirmOrder(quantity, note) },
-                enabled = !isLoading,
+                onClick = onConfirmOrder,
                 shape = RoundedCornerShape(12.dp)
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
                 Text("Enviar Solicitud")
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                enabled = !isLoading
-            ) {
+            TextButton(onClick = onDismiss) {
                 Text("Cancelar")
             }
         }
@@ -240,15 +302,11 @@ fun OrderRequestDialog(
 }
 
 @Composable
-fun OrderRequestSuccessDialog(
-    onDismiss: () -> Unit
-) {
+fun OrderRequestSuccessDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
+            TextButton(onClick = onDismiss) {
                 Text("Aceptar")
             }
         },
@@ -259,9 +317,7 @@ fun OrderRequestSuccessDialog(
                 tint = MaterialTheme.colorScheme.primary
             )
         },
-        title = {
-            Text("¡Solicitud enviada!")
-        },
+        title = { Text("¡Solicitud enviada!") },
         text = {
             Text(
                 "Tu solicitud fue enviada correctamente. " +
@@ -271,26 +327,16 @@ fun OrderRequestSuccessDialog(
     )
 }
 
-
 @Composable
-fun OrderRequestErrorDialog(
-    message: String,
-    onDismiss: () -> Unit
-) {
+fun OrderRequestErrorDialog(message: String, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
+            TextButton(onClick = onDismiss) {
                 Text("Aceptar")
             }
         },
-        title = {
-            Text("No se pudo enviar la solicitud")
-        },
-        text = {
-            Text(message)
-        }
+        title = { Text("No se pudo enviar la solicitud") },
+        text = { Text(message) }
     )
 }

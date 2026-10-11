@@ -1,8 +1,11 @@
 package com.example.marketuniversitario.feature.home.ui.home
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,37 +59,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.marketuniversitario.core.theme.MarketUniversitarioTheme
 import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
-import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
 import com.example.marketuniversitario.feature.home.domain.models.UserSummary
-import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestDialog
-import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestErrorDialog
-import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestStatus
-import com.example.marketuniversitario.feature.home.ui.components.OrderRequestDialog.OrderRequestSuccessDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeState,
     onNavigateToItem: (String) -> Unit,
+    onNavigateToStore: (String) -> Unit,
+    onRequestOrderClick: (String) -> Unit,
     onEvent: (HomeEvent) -> Unit,
 ) {
     val selectedProduct = state.selectedProduct
-    val requestProduct = state.requestProduct
     if (selectedProduct != null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ProductQuickViewBottomSheet(
             product = selectedProduct,
             sheetState = sheetState,
             onDismiss = { onEvent(HomeEvent.SelectProductQuickView(null)) },
-            onRequestOrderClick = { product ->
-                onEvent(HomeEvent.RequestProductView(product))
-                onEvent(HomeEvent.SelectProductQuickView(null))
+            onRequestOrderClick = { productId ->
+                onEvent(HomeEvent.RequestProductSelected(productId))
+                onRequestOrderClick(productId)
             },
             onNavigateToBusiness = { businessId ->
                 onEvent(HomeEvent.SelectProductQuickView(null))
-                // TODO: Navegar al perfil del negocio
+                onNavigateToStore(businessId)
             },
             onNavigateToFullDetail = { productId ->
                 onEvent(HomeEvent.SelectProductQuickView(null))
@@ -101,53 +102,12 @@ fun HomeScreen(
             onTagSelected = { tag ->
                 onEvent(HomeEvent.DismissSearchOptions)
                 onEvent(HomeEvent.QueryChanged(tag))
-                onEvent(HomeEvent.Search)
+//                onEvent(HomeEvent.Search)
             }
         )
     }
-    if (requestProduct != null) {
-        OrderRequestDialog(
-            product = requestProduct,
-            onDismiss = {
-                onEvent(
-                    HomeEvent.RequestProductView(null)
-                )
-            },
 
-            onConfirmOrder = { quantity, note ->
-                onEvent(HomeEvent.RequestOrder(
-                    OrderRequest(
-                        product = requestProduct,
-                        quantity = quantity,
-                        note = note
-                    )
-                ))
-            }
-        )
-    }
-    when (val status = state.orderRequestStatus) {
-        OrderRequestStatus.Idle -> Unit
-        OrderRequestStatus.Loading -> {
-            // Opcional: mostrar loading
-        }
 
-        OrderRequestStatus.Success -> {
-                OrderRequestSuccessDialog(
-                    onDismiss = {
-                        onEvent(HomeEvent.DismissOrderRequestStatus)
-                    }
-                )
-        }
-
-        is OrderRequestStatus.Error -> {
-                OrderRequestErrorDialog(
-                    message = status.message,
-                    onDismiss = {
-                        onEvent(HomeEvent.DismissOrderRequestStatus)
-                    }
-                )
-        }
-    }
 
     Column(
         Modifier.fillMaxSize()
@@ -157,7 +117,7 @@ fun HomeScreen(
             query = state.query,
             onQueryChange = { onEvent(HomeEvent.QueryChanged(it)) },
             onSearchWithImageClick = { onEvent(HomeEvent.ShowSearchOptions) },
-            onSearchClick = { onEvent(HomeEvent.Search) },
+//            onSearchClick = { onEvent(HomeEvent.Search) },
             onNotificationClick = { onEvent(HomeEvent.ShowNotification)}
         )
         Box(
@@ -188,10 +148,10 @@ fun HomeScreen(
 @Composable
 fun HomeHeader(
     userSummary: UserSummary?,
-    query: String,
+    query: String?,
     onQueryChange: (String) -> Unit,
     onSearchWithImageClick : () -> Unit,
-    onSearchClick: () -> Unit,
+//    onSearchClick: () -> Unit,
     onNotificationClick: () -> Unit
 ) {
     Box(
@@ -211,22 +171,35 @@ fun HomeHeader(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
 
-                    // Avatar con Inicial del Usuario
-                    val initial = userSummary?.firstName?.trim()?.firstOrNull()?.uppercaseChar()?.toString() ?: "U"
                     Box(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = initial,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                    ){
+                        // Usuario
+                        if(userSummary?.photoUrl == null){
+                            val initial = userSummary?.firstName?.trim()?.firstOrNull()?.uppercaseChar()?.toString() ?: "U"
+                            Text(
+                                text = initial,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        else{
+                            Image(
+                                painter = rememberAsyncImagePainter(userSummary.photoUrl),
+                                contentDescription = "Avatar del usuario",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
                     }
+
+
+
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(text = "Bienvenido 👋", color = MaterialTheme.colorScheme.onPrimaryContainer, fontSize = 12.sp)
@@ -262,7 +235,7 @@ fun HomeHeader(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     BasicTextField(
-                        value = query,
+                        value = query ?: "",
                         onValueChange = onQueryChange,
                         modifier = Modifier
                             .weight(1f)
@@ -273,7 +246,7 @@ fun HomeHeader(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ),
                         decorationBox = { innerTextField ->
-                            if (query.isEmpty()) {
+                            if (query.isNullOrBlank()) {
                                 Text(
                                     "Buscar productos o servicios",
                                     color = MaterialTheme.colorScheme.primaryContainer
@@ -287,29 +260,43 @@ fun HomeHeader(
                         )
 
                     )
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
                     // Ícono de Cámara
                     Box(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onPrimaryContainer)
-                            .clickable { onSearchWithImageClick() },
+                            .background(
+                                if (isPressed)
+                                    MaterialTheme.colorScheme.primaryContainer
+                                else
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) { onSearchWithImageClick() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "Buscar por imagen",
-                            tint = MaterialTheme.colorScheme.primaryContainer,
+                            tint =
+                            if (isPressed)
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            else
+                                MaterialTheme.colorScheme.primaryContainer,
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(5.dp))
                     // Ícono de Búsqueda
                     Box(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primaryContainer)
-                            .clickable { onSearchClick() },
+                            ,
                         contentAlignment = Alignment.Center
                     ){
                         Icon(
@@ -346,8 +333,12 @@ fun HomeContent(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
+
         // Item
-        items(items = products, key = { it.id }) { product ->
+        items(
+            items = products,
+            key = { product -> if (product.id.isNotBlank()) product.id else product.hashCode().toString() }
+        ) { product ->
             ProductCard(
                 product = product,
                 onClick = { onProductClick(product) }
@@ -442,19 +433,22 @@ fun ProductCard(
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToItem: (String) -> Unit = {}
-)
-{
+    onNavigateToItem: (String) -> Unit = {},
+    onNavigateToStore: (String) -> Unit = {},
+    onRequestOrderClick: (String) -> Unit = {}
+) {
     val state by viewModel.state.collectAsState()
 
-    LaunchedEffect (Unit) {
+    LaunchedEffect(Unit) {
         viewModel.onEvent(HomeEvent.Refresh)
     }
 
     HomeScreen(
         state = state,
         onEvent = viewModel::onEvent,
-        onNavigateToItem = onNavigateToItem
+        onNavigateToItem = onNavigateToItem,
+        onNavigateToStore = onNavigateToStore,
+        onRequestOrderClick = onRequestOrderClick
     )
 }
 
@@ -469,7 +463,9 @@ fun HomeScreenPreview() {
         HomeScreen(
             state = HomeState(),
             onEvent = {},
-            onNavigateToItem = {}
+            onNavigateToItem = {},
+            onNavigateToStore = {},
+            onRequestOrderClick = {}
         )
     }
 }

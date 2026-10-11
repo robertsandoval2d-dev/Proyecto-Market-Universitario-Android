@@ -21,6 +21,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,6 +32,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,7 +58,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
+import com.example.marketuniversitario.feature.home.ui.home.ProductCard
 import com.example.marketuniversitario.feature.home.ui.util.saveBitmapToCache
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -62,13 +69,13 @@ fun SearchWithImageBottomSheet(
     viewModel: SearchWithImageViewModel = hiltViewModel(),
     sheetState: SheetState,
     onDismiss: () -> Unit,
-    onTagSelected: (String) -> Unit = {}
+    onTagSelected: (String) -> Unit = {},
+    onProductClick: (FeedProduct) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     val onEvent = viewModel::onEvent
 
-    // Launcher para Galería
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -77,7 +84,6 @@ fun SearchWithImageBottomSheet(
         }
     }
 
-    // Launcher para Cámara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
@@ -114,7 +120,7 @@ fun SearchWithImageBottomSheet(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Identificador Visual por IA",
+                        text = "Búsqueda Visual por IA",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -133,7 +139,7 @@ fun SearchWithImageBottomSheet(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .height(180.dp)
                         .clip(RoundedCornerShape(18.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.TopEnd
@@ -157,15 +163,14 @@ fun SearchWithImageBottomSheet(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                // Botón para Analizar con IA
                 Button(
                     onClick = { onEvent(SearchWithImageEvent.AnalyzeImage) },
                     enabled = state.status !is SearchWithImageStatus.Analyzing,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(48.dp),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     if (state.status is SearchWithImageStatus.Analyzing) {
@@ -175,33 +180,31 @@ fun SearchWithImageBottomSheet(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Identificando etiquetas con IA...")
+                        Text("Analizando imagen con IA...")
                     } else {
                         Icon(Icons.Default.AutoAwesome, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Identificar Etiquetas", fontWeight = FontWeight.Bold)
+                        Text("Identificar Producto", fontWeight = FontWeight.Bold)
                     }
                 }
             } else {
-                // Selector con 2 opciones: Cámara y Galería
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Elige una imagen para identificar etiquetas:",
+                        text = "Elige una opción para identificar tu producto:",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Tarjeta 1: Tomar Foto (Cámara)
                         Surface(
                             onClick = { cameraLauncher.launch(null) },
                             shape = MaterialTheme.shapes.large,
@@ -215,33 +218,24 @@ fun SearchWithImageBottomSheet(
                                 )
                         ) {
                             Column(
-                                modifier = Modifier.padding(20.dp),
+                                modifier = Modifier.padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.CameraAlt,
-                                    contentDescription = "Tomar foto con la cámara",
+                                    contentDescription = "Tomar foto",
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(40.dp)
+                                    modifier = Modifier.size(36.dp)
                                 )
-                                Spacer(modifier = Modifier.height(10.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Tomar Foto",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Usar la cámara",
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
+                                    fontSize = 14.sp
                                 )
                             }
                         }
 
-                        // Tarjeta 2: Abrir Galería
                         Surface(
                             onClick = { galleryLauncher.launch("image/*") },
                             shape = MaterialTheme.shapes.large,
@@ -255,28 +249,20 @@ fun SearchWithImageBottomSheet(
                                 )
                         ) {
                             Column(
-                                modifier = Modifier.padding(20.dp),
+                                modifier = Modifier.padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = "Abrir la galería",
+                                    contentDescription = "Galería",
                                     tint = MaterialTheme.colorScheme.secondary,
-                                    modifier = Modifier.size(40.dp)
+                                    modifier = Modifier.size(36.dp)
                                 )
-                                Spacer(modifier = Modifier.height(10.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Galería",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Subir foto del móvil",
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
+                                    fontSize = 14.sp
                                 )
                             }
                         }
@@ -284,9 +270,9 @@ fun SearchWithImageBottomSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Resultados de Etiquetas o Errores
+            // Resultados de Etiquetas y Productos Coincidentes
             when (val status = state.status) {
                 is SearchWithImageStatus.Error -> {
                     Text(
@@ -301,17 +287,11 @@ fun SearchWithImageBottomSheet(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Etiquetas identificadas por la IA:",
+                            text = "Etiquetas identificadas:",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "Toca una etiqueta para filtrar en el catálogo:",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
 
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -333,12 +313,72 @@ fun SearchWithImageBottomSheet(
                                 )
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        if (status.matchedProducts.isNotEmpty()) {
+                            Text(
+                                text = "Productos coincidentes (${status.matchedProducts.size}):",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.height(220.dp)
+                            ) {
+                                items(
+                                    items = status.matchedProducts,
+                                    key = { product -> if (product.id.isNotBlank()) product.id else product.hashCode().toString() }
+                                ) { product ->
+                                    ProductCard(
+                                        product = product,
+                                        onClick = { onProductClick(product) }
+                                    )
+                                }
+                            }
+                        } else {
+                            // Estado Vacío (Empty State) si no hay productos que coincidan con las etiquetas
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(20.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.SearchOff,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        modifier = Modifier.size(36.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "No encontramos productos con estas características",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Prueba con otra foto o busca por nombre en la barra principal",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 else -> Unit
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

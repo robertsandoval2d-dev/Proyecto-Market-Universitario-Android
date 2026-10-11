@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.home.data
+package com.example.marketuniversitario.feature.home.data.mappers
 
 import com.example.marketuniversitario.feature.business.domain.models.Product
 import com.example.marketuniversitario.feature.home.domain.models.FeedProduct

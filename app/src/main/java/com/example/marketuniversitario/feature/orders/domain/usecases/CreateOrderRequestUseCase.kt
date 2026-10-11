@@ -2,8 +2,8 @@ package com.example.marketuniversitario.feature.orders.domain.usecases
 
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import com.example.marketuniversitario.feature.business.domain.repositories.BusinessRepository
-import com.example.marketuniversitario.feature.home.domain.models.OrderRequest
 import com.example.marketuniversitario.feature.orders.domain.models.Order
+import com.example.marketuniversitario.feature.orders.domain.models.ProductRequest
 import com.example.marketuniversitario.feature.orders.domain.models.OrderStatus
 import com.example.marketuniversitario.feature.orders.domain.repositories.OrderRepository
 import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
@@ -16,7 +16,7 @@ class CreateOrderRequestUseCase @Inject constructor(
     private val userRepository: UserRepository,
     private val authRepository: AuthRepository,
 ) {
-    suspend operator fun invoke(request: OrderRequest): Result<Order> {
+    suspend operator fun invoke(request: ProductRequest): Result<Order> {
         val uid = authRepository.getCurrentUserId()?: throw Exception("No se encontró el usuario actual")
         val clientInfo = userRepository.getUser(uid).fold(
             onSuccess = { client ->
@@ -26,7 +26,7 @@ class CreateOrderRequestUseCase @Inject constructor(
                 throw Exception("No se pudo obtener la información del cliente")
             }
         )
-        val businessInfo = businessRepository.getBusiness(request.product.businessId).fold(
+        val businessInfo = businessRepository.getBusiness(request.businessId).fold(
             onSuccess = { business ->
                 business ?: throw Exception("No se encontró la información del negocio")
             },
@@ -44,13 +44,13 @@ class CreateOrderRequestUseCase @Inject constructor(
             businessId = businessInfo.id,
             businessName = businessInfo.name,
 
-            productId = request.product.id,
-            productName = request.product.name,
-            productImage = request.product.imageUrl,
-            productPrice = request.product.price,
+            productId = request.id,
+            productName = request.name,
+            productImage = request.imageUrl,
+            productPrice = request.price,
 
             quantity = request.quantity,
-            totalPrice = request.quantity * request.product.price,
+            totalPrice = request.quantity * request.price,
             note = request.note,
 
             status = OrderStatus.PENDING
