@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import com.example.marketuniversitario.feature.business.data.datasources.BusinessDao
 import com.example.marketuniversitario.feature.business.data.datasources.ProductDao
+import com.example.marketuniversitario.feature.orders.data.datasources.MessageDao
+import com.example.marketuniversitario.feature.orders.data.datasources.OrderDao
+import com.example.marketuniversitario.feature.reviews.data.datasources.ReviewDao
 import com.example.marketuniversitario.feature.user.data.datasources.UserDao
 import dagger.Module
 import dagger.Provides
@@ -42,5 +45,23 @@ object DatabaseModule {
     @Singleton
     fun provideUserDao(appDatabase: AppDatabase): UserDao {
         return appDatabase.userDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideOrderDao(appDatabase: AppDatabase): OrderDao {
+        return appDatabase.orderDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideReviewDao(appDatabase: AppDatabase): ReviewDao {
+        return appDatabase.reviewDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMessageDao(appDatabase: AppDatabase): MessageDao {
+        return appDatabase.messageDao()
     }
 }
