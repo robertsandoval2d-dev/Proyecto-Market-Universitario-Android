@@ -53,7 +53,6 @@ import coil.compose.SubcomposeAsyncImage
 import com.example.marketuniversitario.feature.business.domain.models.Business
 import com.example.marketuniversitario.feature.business.domain.models.BusinessCategory
 import com.example.marketuniversitario.feature.business.domain.models.Product
-
 @Composable
 fun PublicBusinessRoute(
     viewModel: PublicBusinessViewModel = hiltViewModel(),

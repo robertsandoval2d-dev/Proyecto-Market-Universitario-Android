@@ -12,6 +12,7 @@ import com.example.marketuniversitario.feature.business.data.models.toDomain
 import com.example.marketuniversitario.feature.business.data.models.toRoomEntity
 import com.example.marketuniversitario.feature.business.data.workers.SyncBusinessWorker
 import com.example.marketuniversitario.feature.business.domain.models.Business
+import com.example.marketuniversitario.feature.business.domain.models.Product
 import com.example.marketuniversitario.feature.business.domain.repositories.BusinessRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -70,6 +71,15 @@ class BusinessRepositoryImpl @Inject constructor(
             // 2. Devolver desde la base de datos local (Room)
             val localEntity = localDataSource.getBusinessById(businessId)
             Result.success(localEntity?.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getPublicBusinessInfo(businessId: String): Result<Business?> {
+        return try {
+            val remoteEntity = remoteDataSource.getBusiness(businessId)
+            Result.success(remoteEntity?.toDomain())
         } catch (e: Exception) {
             Result.failure(e)
         }

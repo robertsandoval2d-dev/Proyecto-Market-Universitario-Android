@@ -5,5 +5,6 @@ import com.example.marketuniversitario.feature.business.domain.models.Business
 interface BusinessRepository {
     suspend fun createBusiness(business: Business): Result<Business>
     suspend fun getBusiness(businessId: String): Result<Business?>
+    suspend fun getPublicBusinessInfo(businessId: String): Result<Business?>
     suspend fun updateBusiness(business: Business): Result<Unit>
 }

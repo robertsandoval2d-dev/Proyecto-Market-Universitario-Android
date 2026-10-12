@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.business.domain.usecases.GetBusinessByIdUseCase
-import com.example.marketuniversitario.feature.business.domain.usecases.GetProductsByBusinessUseCase
+import com.example.marketuniversitario.feature.business.domain.usecases.GetPublicProductsByBusinessUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PublicBusinessViewModel @Inject constructor(
-    private val getProductsByBusinessUseCase: GetProductsByBusinessUseCase,
+    private val getPublicProductsByBusinessUseCase: GetPublicProductsByBusinessUseCase,
     private val getBusinessByIdUseCase: GetBusinessByIdUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -42,7 +42,7 @@ class PublicBusinessViewModel @Inject constructor(
             
             // Cargar datos del negocio y sus productos
             val businessResult = getBusinessByIdUseCase(businessId)
-            val productsResult = getProductsByBusinessUseCase(businessId)
+            val productsResult = getPublicProductsByBusinessUseCase(businessId)
 
             businessResult.onSuccess { business ->
                 if (business != null) {

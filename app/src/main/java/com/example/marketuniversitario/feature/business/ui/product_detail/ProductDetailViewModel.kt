@@ -3,7 +3,7 @@ package com.example.marketuniversitario.feature.business.ui.product_detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marketuniversitario.feature.business.domain.usecases.GetProductUseCase
+import com.example.marketuniversitario.feature.business.domain.usecases.GetPublicProductUseCase
 import com.example.marketuniversitario.feature.reviews.domain.usecases.GetReviewsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
-    private val getProductUseCase: GetProductUseCase,
+    private val getPublicProductUseCase: GetPublicProductUseCase,
     private val getReviewsUseCase: GetReviewsUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -60,7 +60,7 @@ class ProductDetailViewModel @Inject constructor(
                 }
             }
 
-            getProductUseCase(productId)
+            getPublicProductUseCase(productId)
                 .onSuccess { product ->
                     if (product != null) {
                         _state.update {

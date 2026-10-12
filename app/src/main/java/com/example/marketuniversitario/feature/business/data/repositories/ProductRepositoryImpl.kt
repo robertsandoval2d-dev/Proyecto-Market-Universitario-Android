@@ -74,6 +74,16 @@ class ProductRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getPublicProductInfo(productId: String): Result<Product> {
+        return try {
+            val remoteEntity = remoteDataSource.getProduct(productId)
+                ?: return Result.failure(NoSuchElementException("Producto no encontrado"))
+            Result.success(remoteEntity.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getProductsByBusiness(businessId: String): Result<List<Product>> {
         return try {
             // 1. Sincronización Remote -> Local con timeout rápido (3 segundos).
@@ -93,6 +103,15 @@ class ProductRepositoryImpl @Inject constructor(
             // 2. Fuente de verdad local (Room): siempre devuelve los datos al instante
             val localEntities = localDataSource.getProductsByBusiness(businessId)
             Result.success(localEntities.map { it.toDomain() })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getPublicProductsByBusiness(businessId: String): Result<List<Product>> {
+        return try {
+            val remoteEntities = remoteDataSource.getProductsByBusiness(businessId)
+            Result.success(remoteEntities.map { it.toDomain() })
         } catch (e: Exception) {
             Result.failure(e)
         }

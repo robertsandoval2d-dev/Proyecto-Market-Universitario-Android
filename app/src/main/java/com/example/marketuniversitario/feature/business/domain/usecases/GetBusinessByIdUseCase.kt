@@ -8,6 +8,6 @@ class GetBusinessByIdUseCase @Inject constructor(
     private val businessRepository: BusinessRepository
 ) {
     suspend operator fun invoke(id: String): Result<Business?> {
-        return businessRepository.getBusiness(id)
+        return businessRepository.getPublicBusinessInfo(id)
     }
 }

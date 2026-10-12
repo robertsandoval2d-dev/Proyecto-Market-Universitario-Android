@@ -14,14 +14,10 @@ class GetFeedProductsUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Result<List<FeedProduct>> {
         return try {
-            val currentUserId = authRepository.getCurrentUserId()
-            val userBusinessId = if (currentUserId != null) {
-                userRepository.getUser(currentUserId).getOrNull()?.businessId
-            } else {
-                null
-            }
+            val currentUserId = authRepository.getCurrentUserId() ?: return Result.failure(IllegalStateException("Sesión no disponible"))
+            val userBusinessId = userRepository.getUser(currentUserId).getOrThrow()?.businessId
 
-            val productsList = productRepository.getProducts().getOrElse { emptyList() }
+            val productsList = productRepository.getProducts().getOrThrow()
 
             val filteredProducts = productsList.filter { product ->
                 val isNotOwnProduct = userBusinessId.isNullOrBlank() || product.businessId != userBusinessId
@@ -31,11 +27,7 @@ class GetFeedProductsUseCase @Inject constructor(
                 isNotOwnProduct && hasStock && isAvailable
             }
 
-            val feedProducts = filteredProducts.map { product ->
-                product.toFeedProduct()
-            }
-
-            Result.success(feedProducts)
+            Result.success(filteredProducts.map { it.toFeedProduct() })
         } catch (e: Exception) {
             Result.failure(e)
         }

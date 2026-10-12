@@ -3,7 +3,7 @@ package com.example.marketuniversitario.feature.orders.ui.order_request
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marketuniversitario.feature.business.domain.usecases.GetProductUseCase
+import com.example.marketuniversitario.feature.business.domain.usecases.GetPublicProductUseCase
 import com.example.marketuniversitario.feature.orders.domain.models.ProductRequest
 import com.example.marketuniversitario.feature.orders.domain.usecases.CreateOrderRequestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +18,7 @@ import kotlin.text.isNullOrBlank
 @HiltViewModel
 class OrderRequestViewModel @Inject constructor(
     private val createOrderRequestUseCase: CreateOrderRequestUseCase,
-    private val getProductUseCase: GetProductUseCase,
+    private val getPublicProductUseCase: GetPublicProductUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -54,7 +54,7 @@ class OrderRequestViewModel @Inject constructor(
             _state.update {
                 it.copy( status = OrderRequestStatus.Loading )
             }
-            getProductUseCase(productId)
+            getPublicProductUseCase(productId)
                 .onSuccess { product ->
                     if (product == null) {
                         _state.update {
