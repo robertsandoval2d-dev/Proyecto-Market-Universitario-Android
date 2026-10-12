@@ -74,9 +74,7 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override fun getUserStream(userId: String): Flow<User?> {
-        // Continuar usando RemoteDataSource temporalmente si se desea realtime, 
-        // pero podemos emitir del Room si tuviéramos un getRoomStream().
-        return remoteDataSource.getUserStream(userId).map { it?.toDomain() }
+        return localDataSource.getUserStreamById(userId).map { it?.toDomain() }
     }
 
     override suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?): Result<Unit> {

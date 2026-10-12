@@ -21,13 +21,7 @@ class GetUserSummaryUseCase @Inject constructor(
                     throw Exception("Usuario no encontrado")
                 }
 
-                val summary = user.toUserSummary()
-
-                if (summary.firstName.equals("Sebastian", ignoreCase = true)) {
-                    summary.copy(firstName = "Chebas")
-                } else {
-                    summary
-                }
+                user.toUserSummary()
 
             },
             onFailure = {
