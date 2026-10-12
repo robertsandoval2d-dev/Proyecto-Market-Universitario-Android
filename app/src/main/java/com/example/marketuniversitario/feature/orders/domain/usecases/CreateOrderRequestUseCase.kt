@@ -35,6 +35,10 @@ class CreateOrderRequestUseCase @Inject constructor(
             }
         )
 
+        if (businessInfo.ownerId == uid || clientInfo.businessId == businessInfo.id) {
+            throw Exception("No puedes crear una orden para tu propio negocio")
+        }
+
         val order = Order(
             buyerId = clientInfo.id,
             buyerName = clientInfo.name,
