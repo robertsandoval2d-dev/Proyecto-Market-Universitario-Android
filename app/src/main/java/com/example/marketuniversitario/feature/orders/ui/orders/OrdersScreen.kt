@@ -151,6 +151,76 @@ fun OrderCard(
     onNavigateToChat: (String) -> Unit,
     onRateClick: (Order) -> Unit
 ) {
+    var showAcceptDialog by remember { mutableStateOf(false) }
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var showCompleteDialog by remember { mutableStateOf(false) }
+
+    if (showAcceptDialog) {
+        AlertDialog(
+            onDismissRequest = { showAcceptDialog = false },
+            title = { Text("Aceptar Pedido") },
+            text = { Text("¿Estás seguro de que deseas aceptar este pedido?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAcceptDialog = false
+                    onEvent(OrdersEvent.AcceptOrder(order.id))
+                }) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAcceptDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (showRejectDialog) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = { Text("Rechazar Pedido") },
+            text = { Text("¿Estás seguro de que deseas rechazar este pedido? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showRejectDialog = false
+                        onEvent(OrdersEvent.RejectOrder(order.id))
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Sí, rechazar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRejectDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (showCompleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showCompleteDialog = false },
+            title = { Text("Completar Venta") },
+            text = { Text("¿Estás seguro de que deseas marcar esta venta como completada?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCompleteDialog = false
+                    onEvent(OrdersEvent.CompleteOrder(order.id))
+                }) {
+                    Text("Sí, completar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCompleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     // Determinar colores del "Chip" de estado
     val (statusBgColor, statusTextColor) = when (order.status) {
         OrderStatus.PENDING -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
@@ -275,7 +345,7 @@ fun OrderCard(
                         horizontalArrangement = Arrangement.End
                     ) {
                         OutlinedButton(
-                            onClick = { onEvent(OrdersEvent.RejectOrder(order.id)) },
+                            onClick = { showRejectDialog = true },
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             ),
@@ -286,7 +356,7 @@ fun OrderCard(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
-                            onClick = { onEvent(OrdersEvent.AcceptOrder(order.id)) },
+                            onClick = { showAcceptDialog = true },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             modifier = Modifier.height(36.dp),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
@@ -309,7 +379,7 @@ fun OrderCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedButton(
-                            onClick = { onEvent(OrdersEvent.RejectOrder(order.id)) },
+                            onClick = { showRejectDialog = true },
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             ),
@@ -319,7 +389,7 @@ fun OrderCard(
                             Text("Rechazar")
                         }
                         Button(
-                            onClick = { onEvent(OrdersEvent.CompleteOrder(order.id)) },
+                            onClick = { showCompleteDialog = true },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary
                             ),
