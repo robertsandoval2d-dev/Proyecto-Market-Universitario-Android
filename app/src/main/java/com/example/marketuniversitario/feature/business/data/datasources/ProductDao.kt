@@ -17,6 +17,9 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE isSynced = 0")
     suspend fun getUnsyncedProducts(): List<ProductRoomEntity>
 
+    @Query("UPDATE products SET businessName = :newBusinessName WHERE businessId = :businessId")
+    suspend fun updateBusinessNameInProducts(businessId: String, newBusinessName: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProduct(product: ProductRoomEntity)
 

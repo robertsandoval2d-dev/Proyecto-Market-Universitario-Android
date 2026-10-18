@@ -54,12 +54,17 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
     override fun getOrdersByBuyer(buyerId: String): Flow<List<Order>> {
-        // Sincronizar remotamente a SQLite en segundo plano si hay conexión
+        // Sincronizar remotamente a SQLite en segundo plano si hay conexión (respetando isSynced)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 remoteDataSource.getOrdersByBuyerFlow(buyerId).collect { entities ->
-                    val roomEntities = entities.map { it.toDomain().copy(isSale = false).toRoomEntity(isSynced = true) }
-                    localDataSource.insertOrders(roomEntities)
+                    for (entity in entities) {
+                        val localEntity = localDataSource.getOrderById(entity.id)
+                        if (localEntity == null || localEntity.isSynced) {
+                            val roomEntity = entity.toDomain().copy(isSale = false).toRoomEntity(isSynced = true)
+                            localDataSource.insertOrder(roomEntity)
+                        }
+                    }
                 }
             } catch (_: Exception) {}
         }
@@ -70,12 +75,17 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
     override fun getOrdersBySeller(sellerId: String): Flow<List<Order>> {
-        // Sincronizar remotamente a SQLite en segundo plano si hay conexión
+        // Sincronizar remotamente a SQLite en segundo plano si hay conexión (respetando isSynced)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 remoteDataSource.getOrdersBySellerFlow(sellerId).collect { entities ->
-                    val roomEntities = entities.map { it.toDomain().copy(isSale = true).toRoomEntity(isSynced = true) }
-                    localDataSource.insertOrders(roomEntities)
+                    for (entity in entities) {
+                        val localEntity = localDataSource.getOrderById(entity.id)
+                        if (localEntity == null || localEntity.isSynced) {
+                            val roomEntity = entity.toDomain().copy(isSale = true).toRoomEntity(isSynced = true)
+                            localDataSource.insertOrder(roomEntity)
+                        }
+                    }
                 }
             } catch (_: Exception) {}
         }
@@ -127,12 +137,17 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
     override fun getMessagesForOrder(orderId: String): Flow<List<Message>> {
-        // Sincronizar mensajes en segundo plano si hay conexión
+        // Sincronizar mensajes en segundo plano si hay conexión (respetando isSynced)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 messageRemoteDataSource.getMessages(orderId).collect { entities ->
-                    val roomEntities = entities.map { it.toDomain().toRoomEntity(isSynced = true) }
-                    messageLocalDataSource.insertMessages(roomEntities)
+                    for (entity in entities) {
+                        val localEntity = messageLocalDataSource.getMessageById(entity.id)
+                        if (localEntity == null || localEntity.isSynced) {
+                            val roomEntity = entity.toDomain().toRoomEntity(isSynced = true)
+                            messageLocalDataSource.insertMessage(roomEntity)
+                        }
+                    }
                 }
             } catch (_: Exception) {}
         }

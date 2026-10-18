@@ -55,15 +55,19 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun getProduct(productId: String): Result<Product?> {
         return try {
             // 1. Intentar actualizar desde remoto con un timeout rápido (3 segundos) si hay red
-            try {
+            val remoteEntity =try {
                 withTimeoutOrNull(3000.milliseconds) {
-                    val remoteEntity = remoteDataSource.getProduct(productId)
-                    if (remoteEntity != null) {
-                        localDataSource.saveProduct(remoteEntity.toDomain().toRoomEntity(isSynced = true))
-                    }
+                    remoteDataSource.getProduct(productId)
                 }
             } catch (_: Exception) {
-                // Ignorar error de red / timeout
+                null // Ignorar error de red / timeout
+            }
+
+            if (remoteEntity != null) {
+                val localEntity = localDataSource.getProductById(productId)
+                if (localEntity == null || localEntity.isSynced) {
+                    localDataSource.saveProduct(remoteEntity.toDomain().toRoomEntity(isSynced = true))
+                }
             }
 
             // 2. Devolver desde la base de datos local (Room)
@@ -87,17 +91,21 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun getProductsByBusiness(businessId: String): Result<List<Product>> {
         return try {
             // 1. Sincronización Remote -> Local con timeout rápido (3 segundos).
-            // Si hay internet, descarga lo remoto y actualiza Room.
-            // Si no hay internet o es lento, expira al instante sin congelar la app.
-            try {
+            val remoteEntities = try {
                 withTimeoutOrNull(3000.milliseconds) {
-                    val remoteEntities = remoteDataSource.getProductsByBusiness(businessId)
-                    for (remoteEntity in remoteEntities) {
+                    remoteDataSource.getProductsByBusiness(businessId)
+                }
+            } catch (_: Exception) {
+                null // Fallo de red o timeout
+            }
+
+            if (remoteEntities != null) {
+                for (remoteEntity in remoteEntities) {
+                    val localEntity = localDataSource.getProductById(remoteEntity.id)
+                    if (localEntity == null || localEntity.isSynced) {
                         localDataSource.saveProduct(remoteEntity.toDomain().toRoomEntity(isSynced = true))
                     }
                 }
-            } catch (_: Exception) {
-                // Ignorar fallos de red o timeout y continuar con la caché local
             }
 
             // 2. Fuente de verdad local (Room): siempre devuelve los datos al instante

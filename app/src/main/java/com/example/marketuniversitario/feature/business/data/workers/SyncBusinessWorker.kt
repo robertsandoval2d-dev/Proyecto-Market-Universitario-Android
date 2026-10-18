@@ -7,6 +7,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.marketuniversitario.feature.business.data.datasources.BusinessLocalDataSource
 import com.example.marketuniversitario.feature.business.data.datasources.BusinessRemoteDataSource
+import com.example.marketuniversitario.feature.business.data.datasources.ProductLocalDataSource
+import com.example.marketuniversitario.feature.business.data.datasources.ProductRemoteDataSource
 import com.example.marketuniversitario.feature.business.data.models.toDomain
 import com.example.marketuniversitario.feature.business.data.models.toEntity
 import com.example.marketuniversitario.feature.business.domain.repositories.BusinessStorageRepository
@@ -19,7 +21,9 @@ class SyncBusinessWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val localDataSource: BusinessLocalDataSource,
     private val remoteDataSource: BusinessRemoteDataSource,
-    private val storageRepository: BusinessStorageRepository
+    private val storageRepository: BusinessStorageRepository,
+    private val productLocalDataSource: ProductLocalDataSource,
+    private val productRemoteDataSource: ProductRemoteDataSource
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -59,6 +63,15 @@ class SyncBusinessWorker @AssistedInject constructor(
                 // Subir a Firestore
                 Log.d(TAG, "Saving business to Firestore: ${businessToUpload.id}")
                 remoteDataSource.updateBusiness(businessToUpload.toEntity())
+
+                // Actualizar el nombre del negocio en todos sus productos (Remoto y Local SQLite)
+                try {
+                    productRemoteDataSource.updateBusinessNameInProducts(business.id, business.name)
+                    productLocalDataSource.updateBusinessNameInProducts(business.id, business.name)
+                    Log.d(TAG, "Business name updated in all associated products for: ${business.id}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to update business name in products during business sync", e)
+                }
 
                 // Marcar como sincronizado en local
                 localDataSource.markAsSynced(business.id)

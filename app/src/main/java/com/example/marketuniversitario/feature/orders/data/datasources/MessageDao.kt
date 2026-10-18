@@ -12,6 +12,9 @@ interface MessageDao {
     @Query("SELECT * FROM messages WHERE orderId = :orderId ORDER BY createdAt ASC")
     fun getMessagesForOrder(orderId: String): Flow<List<MessageRoomEntity>>
 
+    @Query("SELECT * FROM messages WHERE id = :messageId")
+    suspend fun getMessageById(messageId: String): MessageRoomEntity?
+
     @Query("SELECT * FROM messages WHERE isSynced = 0")
     suspend fun getUnsyncedMessages(): List<MessageRoomEntity>
 

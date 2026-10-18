@@ -57,15 +57,19 @@ class BusinessRepositoryImpl @Inject constructor(
     override suspend fun getBusiness(businessId: String): Result<Business?> {
         return try {
             // 1. Intentar actualizar desde remoto con un timeout rápido (3 segundos) si hay red
-            try {
+            val remoteEntity = try {
                 withTimeoutOrNull(3000.milliseconds) {
-                    val remoteEntity = remoteDataSource.getBusiness(businessId)
-                    if (remoteEntity != null) {
-                        localDataSource.saveBusiness(remoteEntity.toDomain().toRoomEntity(isSynced = true))
-                    }
+                    remoteDataSource.getBusiness(businessId)
                 }
             } catch (_: Exception) {
-                // Ignorar error de red / timeout
+                null // Ignorar error de red / timeout
+            }
+
+            if (remoteEntity != null) {
+                val localEntity = localDataSource.getBusinessById(businessId)
+                if (localEntity == null || localEntity.isSynced) {
+                    localDataSource.saveBusiness(remoteEntity.toDomain().toRoomEntity(isSynced = true))
+                }
             }
 
             // 2. Devolver desde la base de datos local (Room)

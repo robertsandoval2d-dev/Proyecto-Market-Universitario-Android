@@ -11,6 +11,10 @@ class MessageLocalDataSource @Inject constructor(
         return messageDao.getMessagesForOrder(orderId)
     }
 
+    suspend fun getMessageById(messageId: String): MessageRoomEntity? {
+        return messageDao.getMessageById(messageId)
+    }
+
     suspend fun getUnsyncedMessages(): List<MessageRoomEntity> {
         return messageDao.getUnsyncedMessages()
     }
