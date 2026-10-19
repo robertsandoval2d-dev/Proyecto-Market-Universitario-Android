@@ -14,6 +14,9 @@ import com.example.marketuniversitario.feature.business.data.workers.SyncProduct
 import com.example.marketuniversitario.feature.business.domain.models.Product
 import com.example.marketuniversitario.feature.business.domain.repositories.ProductRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -125,13 +128,9 @@ class ProductRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getProducts(): Result<List<Product>> {
-        return try {
-            val remoteEntities = remoteDataSource.getProducts()
-            Result.success(remoteEntities.map { it.toDomain() })
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override fun getProducts(): Flow<List<Product>> {
+        return remoteDataSource.observeProducts()
+            .map { entity -> entity.map { it.toDomain() } }
     }
 
     override suspend fun updateProduct(product: Product): Result<Unit> {

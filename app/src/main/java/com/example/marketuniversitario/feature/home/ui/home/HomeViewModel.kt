@@ -11,6 +11,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -89,25 +92,20 @@ class HomeViewModel @Inject constructor(
 
     }
 
+    private var productsJob: Job? = null
     private fun loadProducts() {
-        viewModelScope.launch {
+        productsJob?.cancel()
+        productsJob = viewModelScope.launch {
             _state.update { it.copy(status = HomeStatus.Loading) }
             getFeedProductsUseCase()
-                .onSuccess { productList ->
+                .catch { e -> _state.update { it.copy(status = HomeStatus.Error(e.message ?: "Error al cargar la lista de productos")) } }
+                .onEach { products ->
                     _state.update {
-                        it.copy(
-                            products = productList,
-                            status = HomeStatus.Success
-                        )
+                        it.copy(products = products,
+                            status = HomeStatus.Success)
                     }
                 }
-                .onFailure { error ->
-                    _state.update {
-                        it.copy(
-                            status = HomeStatus.Error(error.message ?: "Error al cargar productos")
-                        )
-                    }
-                }
+                .launchIn(viewModelScope)
         }
     }
 

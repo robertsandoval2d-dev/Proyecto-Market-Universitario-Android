@@ -2,6 +2,9 @@ package com.example.marketuniversitario.feature.business.data.datasources
 
 import com.example.marketuniversitario.feature.business.data.models.ProductEntity
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -22,9 +25,19 @@ class ProductRemoteDataSource @Inject constructor(
         return snapshot.documents.mapNotNull { it.toObject(ProductEntity::class.java) }
     }
 
-    suspend fun getProducts(): List<ProductEntity> {
-        val snapshot = firestore.collection("products").get().await()
-        return snapshot.documents.mapNotNull { it.toObject(ProductEntity::class.java) }
+    fun observeProducts(): Flow<List<ProductEntity>> = callbackFlow {
+        val listener = firestore.collection("products")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val products = snapshot?.documents
+                    ?.mapNotNull { it.toObject(ProductEntity::class.java) }
+                    ?: emptyList()
+                trySend(products)
+            }
+        awaitClose { listener.remove() }
     }
 
     suspend fun updateProduct(productEntity: ProductEntity) {
