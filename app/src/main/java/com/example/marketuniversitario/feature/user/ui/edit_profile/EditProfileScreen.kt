@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.marketuniversitario.feature.user.domain.model.ProfileConstants
 import java.text.SimpleDateFormat
@@ -34,7 +35,15 @@ fun EditProfileRoute(
     onNavigateBack: () -> Unit,
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                EditProfileEffect.Saved -> onNavigateBack()
+            }
+        }
+    }
 
     EditProfileScreen(
         state = state,
@@ -58,13 +67,6 @@ fun EditProfileScreen(
             }
         }
     )
-
-    LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) {
-            onEvent(EditProfileEvent.ResetState)
-            onNavigateBack()
-        }
-    }
 
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
@@ -94,7 +96,17 @@ fun EditProfileScreen(
         }
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.saveStatus) {
+        (state.saveStatus as? SaveStatus.Error)?.let {
+            snackbarHostState.showSnackbar(it.message)
+            onEvent(EditProfileEvent.DismissError)
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Editar Perfil", fontWeight = FontWeight.Bold) },
@@ -106,233 +118,250 @@ fun EditProfileScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Avatar
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clickable {
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                if (!state.photoUri.isNullOrBlank()) {
-                    AsyncImage(
-                        model = state.photoUri,
-                        contentDescription = "Foto de perfil",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
+        when (val s = state.status) {
+            EditProfileStatus.Loading -> {
+                Box(Modifier.fillMaxSize().padding(paddingValues), Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            is EditProfileStatus.Error -> {
+                Column(
+                    Modifier.fillMaxSize().padding(paddingValues),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(s.message, color = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = { onEvent(EditProfileEvent.Retry) }) { Text("Reintentar") }
+                }
+            }
+            EditProfileStatus.Success -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .verticalScroll(rememberScrollState())
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Avatar
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
+                            .size(120.dp)
+                            .clickable {
+                                photoPickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
                         contentAlignment = Alignment.Center
                     ) {
-                        val initial = state.user?.name?.take(1)?.uppercase() ?: "U"
-                        Text(
-                            text = initial,
-                            style = MaterialTheme.typography.displayMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-
-                // Edit Icon
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .offset(x = (-4).dp, y = (-4).dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar Foto",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Name Field
-            OutlinedTextField(
-                value = state.name,
-                onValueChange = { onEvent(EditProfileEvent.NameChanged(it)) },
-                label = { Text("Nombre") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = state.name.isBlank(),
-                supportingText = {
-                    if (state.name.isBlank()) {
-                        Text("Campo obligatorio")
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Phone Field
-            OutlinedTextField(
-                value = state.phone,
-                onValueChange = { 
-                    if (it.all { char -> char.isDigit() } && it.length <= 9) { 
-                        onEvent(EditProfileEvent.PhoneChanged(it)) 
-                    } 
-                },
-                label = { Text("Celular") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                isError = state.phone.isBlank() || state.phone.length < 9,
-                supportingText = {
-                    if (state.phone.isBlank()) {
-                        Text("Campo obligatorio")
-                    } else if (state.phone.length < 9) {
-                        Text("Debe tener exactamente 9 dígitos")
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Faculty Field
-            var expanded by remember { mutableStateOf(false) }
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = state.faculty,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Facultad") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    ProfileConstants.faculties.forEach { faculty ->
-                        DropdownMenuItem(
-                            text = { Text(faculty) },
-                            onClick = {
-                                onEvent(EditProfileEvent.FacultyChanged(faculty))
-                                expanded = false
+                        if (!state.photoUri.isNullOrBlank()) {
+                            AsyncImage(
+                                model = state.photoUri,
+                                contentDescription = "Foto de perfil",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                val initial = state.user?.name?.take(1)?.uppercase() ?: "U"
+                                Text(
+                                    text = initial,
+                                    style = MaterialTheme.typography.displayMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             }
-                        )
+                        }
+
+                        // Edit Icon
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .offset(x = (-4).dp, y = (-4).dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar Foto",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-            // Gender Field
-            var genderExpanded by remember { mutableStateOf(false) }
-
-            ExposedDropdownMenuBox(
-                expanded = genderExpanded,
-                onExpandedChange = { genderExpanded = it },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = state.gender,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Género") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = genderExpanded,
-                    onDismissRequest = { genderExpanded = false }
-                ) {
-                    ProfileConstants.genders.forEach { gender ->
-                        DropdownMenuItem(
-                            text = { Text(gender) },
-                            onClick = {
-                                onEvent(EditProfileEvent.GenderChanged(gender))
-                                genderExpanded = false
+                    // Name Field
+                    OutlinedTextField(
+                        value = state.name,
+                        onValueChange = { onEvent(EditProfileEvent.NameChanged(it)) },
+                        label = { Text("Nombre") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        isError = state.name.isBlank(),
+                        supportingText = {
+                            if (state.name.isBlank()) {
+                                Text("Campo obligatorio")
                             }
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Phone Field
+                    OutlinedTextField(
+                        value = state.phone,
+                        onValueChange = {
+                            if (it.all { char -> char.isDigit() } && it.length <= 9) {
+                                onEvent(EditProfileEvent.PhoneChanged(it))
+                            }
+                        },
+                        label = { Text("Celular") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        isError = state.phone.isBlank() || state.phone.length < 9,
+                        supportingText = {
+                            if (state.phone.isBlank()) {
+                                Text("Campo obligatorio")
+                            } else if (state.phone.length < 9) {
+                                Text("Debe tener exactamente 9 dígitos")
+                            }
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Faculty Field
+                    var expanded by remember { mutableStateOf(false) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = it },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = state.faculty,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Facultad") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            ProfileConstants.faculties.forEach { faculty ->
+                                DropdownMenuItem(
+                                    text = { Text(faculty) },
+                                    onClick = {
+                                        onEvent(EditProfileEvent.FacultyChanged(faculty))
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Gender Field
+                    var genderExpanded by remember { mutableStateOf(false) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = genderExpanded,
+                        onExpandedChange = { genderExpanded = it },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = state.gender,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Género") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = genderExpanded,
+                            onDismissRequest = { genderExpanded = false }
+                        ) {
+                            ProfileConstants.genders.forEach { gender ->
+                                DropdownMenuItem(
+                                    text = { Text(gender) },
+                                    onClick = {
+                                        onEvent(EditProfileEvent.GenderChanged(gender))
+                                        genderExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Birthday Field
+                    val formattedBirthday = remember(state.birthday) {
+                        state.birthday?.let {
+                            SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
+                        } ?: ""
+                    }
+
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = formattedBirthday,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Cumpleaños") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { showDatePicker = true }
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Save Button
+                    val isSaving = state.saveStatus is SaveStatus.Saving
+                    Button(
+                        onClick = { onEvent(EditProfileEvent.SaveProfile) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        enabled = !isSaving && state.isFormValid
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Guardar Cambios")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Birthday Field
-            val formattedBirthday = remember(state.birthday) {
-                state.birthday?.let {
-                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
-                } ?: ""
-            }
-
-            Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = formattedBirthday,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Cumpleaños") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clickable { showDatePicker = true }
-                )
-            }
-
-            if (state.error != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = state.error, color = MaterialTheme.colorScheme.error)
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Save Button
-            Button(
-                onClick = { onEvent(EditProfileEvent.SaveProfile) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                enabled = !state.isLoading
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text("Guardar Cambios")
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
         }
+
     }
 }

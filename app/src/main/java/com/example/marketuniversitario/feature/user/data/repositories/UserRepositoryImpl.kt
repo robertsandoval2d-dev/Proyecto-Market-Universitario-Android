@@ -6,6 +6,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.marketuniversitario.feature.business.data.models.toDomain
+import com.example.marketuniversitario.feature.business.data.models.toRoomEntity
 import com.example.marketuniversitario.feature.user.data.datasources.UserLocalDataSource
 import com.example.marketuniversitario.feature.user.data.datasources.UserRemoteDataSource
 import com.example.marketuniversitario.feature.user.data.models.toDomain
@@ -54,15 +56,21 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getUser(userId: String): Result<User?> {
         return try {
             // 1. Intentar actualizar desde remoto con un timeout rápido (3 segundos)
-            try {
+
+            val remoteEntity = try {
                 withTimeoutOrNull(3000.milliseconds) {
-                    val remoteEntity = remoteDataSource.getUser(userId)
-                    if (remoteEntity != null) {
-                        localDataSource.saveUser(remoteEntity.toDomain().toRoomEntity(isSynced = true))
-                    }
+                    remoteDataSource.getUser(userId)
                 }
             } catch (_: Exception) {
-                // Ignorar error de red / timeout
+                null
+            // Ignorar error de red / timeout
+            }
+            if (remoteEntity != null) {
+                val localEntity = localDataSource.getUserById(userId)
+                if (localEntity == null || localEntity.isSynced) {
+                    localDataSource.saveUser(remoteEntity.toDomain().toRoomEntity(isSynced = true))
+                }
+
             }
 
             // 2. Devolver desde la base de datos local

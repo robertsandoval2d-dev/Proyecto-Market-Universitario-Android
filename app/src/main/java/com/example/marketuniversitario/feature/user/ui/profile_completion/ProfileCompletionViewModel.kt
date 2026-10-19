@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
 import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
 import com.example.marketuniversitario.feature.user.domain.usecases.CompleteUserProfileUseCase
-import com.example.marketuniversitario.feature.user.domain.usecases.UploadProfileImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 import androidx.lifecycle.SavedStateHandle
+import com.example.marketuniversitario.feature.user.domain.usecases.UploadProfileImageUseCase
 import javax.inject.Inject
 
 @HiltViewModel

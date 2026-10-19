@@ -68,7 +68,7 @@ class SyncUserWorker @AssistedInject constructor(
             Result.success()
         } catch (e: Exception) {
             Log.e(TAG, "Exception during user synchronization", e)
-            Result.retry()
+            if (runAttemptCount < 5) Result.retry() else Result.failure()
         }
     }
 }
