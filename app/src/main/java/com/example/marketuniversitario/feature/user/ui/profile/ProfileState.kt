@@ -1,4 +1,4 @@
-package com.example.marketuniversitario.feature.user.ui
+package com.example.marketuniversitario.feature.user.ui.profile
 
 import com.example.marketuniversitario.feature.user.domain.model.User
 

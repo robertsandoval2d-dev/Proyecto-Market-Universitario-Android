@@ -26,7 +26,4 @@ interface UserDao {
 
     @Query("UPDATE users SET isSynced = 1 WHERE id = :userId")
     suspend fun markAsSynced(userId: String)
-    
-    @Query("DELETE FROM users WHERE id = :userId")
-    suspend fun deleteUser(userId: String)
 }

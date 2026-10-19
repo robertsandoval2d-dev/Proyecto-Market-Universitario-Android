@@ -3,9 +3,9 @@ package com.example.marketuniversitario.feature.user.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.example.marketuniversitario.feature.user.ui.ProfileRoute
 import com.example.marketuniversitario.feature.user.ui.edit_profile.EditProfileRoute
 import com.example.marketuniversitario.feature.user.ui.preferences.PreferencesRoute
+import com.example.marketuniversitario.feature.user.ui.profile.ProfileRoute
 import com.example.marketuniversitario.feature.user.ui.terms.TermsRoute
 
 fun NavGraphBuilder.profileGraph(

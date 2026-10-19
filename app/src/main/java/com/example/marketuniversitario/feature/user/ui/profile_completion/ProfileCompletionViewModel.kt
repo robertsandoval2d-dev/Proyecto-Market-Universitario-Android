@@ -2,9 +2,10 @@ package com.example.marketuniversitario.feature.user.ui.profile_completion
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
-import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
+import com.example.marketuniversitario.feature.auth.domain.usecases.GetCurrentUserIdUseCase
+import com.example.marketuniversitario.feature.auth.domain.usecases.LogoutUseCase
 import com.example.marketuniversitario.feature.user.domain.usecases.CompleteUserProfileUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.GetUserProfileInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,8 +19,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileCompletionViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val userRepository: UserRepository,
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+    private val logoutUseCase: LogoutUseCase,
+    private val getUserProfileInfoUseCase: GetUserProfileInfoUseCase,
     private val uploadProfileImageUseCase: UploadProfileImageUseCase,
     private val completeUserProfileUseCase: CompleteUserProfileUseCase,
     private val savedStateHandle: SavedStateHandle
@@ -45,10 +47,8 @@ class ProfileCompletionViewModel @Inject constructor(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            val uid = authRepository.getCurrentUserId() ?: return@launch
-
-            // Cargar usuario
-            userRepository.getUser(uid).onSuccess { user ->
+            // Cargar usuario usando el UseCase que no requiere ID (ya lo obtiene internamente)
+            getUserProfileInfoUseCase().onSuccess { user ->
                 if (user != null) {
                     _state.update {
                         it.copy(
@@ -103,7 +103,7 @@ class ProfileCompletionViewModel @Inject constructor(
 
     private fun logout() {
         viewModelScope.launch {
-            authRepository.logout()
+            logoutUseCase()
             _state.update { it.copy(status = ProfileCompletionStatus.LoggedOut) }
         }
     }
@@ -142,7 +142,7 @@ class ProfileCompletionViewModel @Inject constructor(
 
     private fun submitProfile() {
         val currentState = _state.value
-        val uid = authRepository.getCurrentUserId()
+        val uid = getCurrentUserIdUseCase()
 
         if (uid == null) {
             _state.update { it.copy(status = ProfileCompletionStatus.Error("Sesión no encontrada")) }

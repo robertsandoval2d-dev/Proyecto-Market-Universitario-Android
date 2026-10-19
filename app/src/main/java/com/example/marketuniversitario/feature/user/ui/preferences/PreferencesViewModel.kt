@@ -2,8 +2,8 @@ package com.example.marketuniversitario.feature.user.ui.preferences
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
-import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
+import com.example.marketuniversitario.feature.user.domain.usecases.GetUserProfileInfoUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.UpdateProfileInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,8 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PreferencesViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val userRepository: UserRepository
+    private val getUserProfileInfoUseCase: GetUserProfileInfoUseCase,
+    private val updateProfileInfoUseCase: UpdateProfileInfoUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PreferencesState())
@@ -35,8 +35,7 @@ class PreferencesViewModel @Inject constructor(
 
     private fun loadUser() {
         viewModelScope.launch {
-            val uid = authRepository.getCurrentUserId() ?: return@launch
-            userRepository.getUser(uid).onSuccess { user ->
+            getUserProfileInfoUseCase().onSuccess { user ->
                 if (user != null) {
                     _state.update {
                         it.copy(
@@ -77,7 +76,7 @@ class PreferencesViewModel @Inject constructor(
                 primaryIntent = currentState.primaryIntent
             )
 
-            userRepository.updateUserProfile(updatedUser).onSuccess {
+            updateProfileInfoUseCase(updatedUser).onSuccess {
                 _state.update { it.copy(isLoading = false, isSuccess = true) }
             }.onFailure { error ->
                 _state.update { it.copy(isLoading = false, error = error.message ?: "Error al guardar preferencias") }

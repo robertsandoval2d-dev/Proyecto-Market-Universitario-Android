@@ -26,8 +26,4 @@ class UserLocalDataSource @Inject constructor(
     suspend fun markAsSynced(userId: String) {
         userDao.markAsSynced(userId)
     }
-    
-    suspend fun deleteUser(userId: String) {
-        userDao.deleteUser(userId)
-    }
 }
