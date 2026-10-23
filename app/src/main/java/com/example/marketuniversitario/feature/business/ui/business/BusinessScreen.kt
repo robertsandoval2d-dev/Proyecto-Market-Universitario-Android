@@ -483,7 +483,7 @@ fun StatCard(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.inversePrimary)
+            .background(MaterialTheme.colorScheme.onTertiaryContainer)
             .padding(12.dp)
     ) {
         Row(
@@ -512,7 +512,7 @@ fun StatCard(
                     text = value,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.inverseSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 // Botón "Gestionar"
@@ -635,7 +635,7 @@ fun ActivateBusinessContentPreview() {
 @Preview(showBackground = true)
 @Composable
 fun ManageBusinessContentPreview(){
-    MarketUniversitarioTheme() {
+    MarketUniversitarioTheme(darkTheme = false) {
         ManageBusinessContent(
             onManageProductScreen = {},
             onManageServiceScreen = {},

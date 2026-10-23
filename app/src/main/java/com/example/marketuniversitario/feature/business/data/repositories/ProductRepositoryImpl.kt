@@ -12,9 +12,9 @@ import com.example.marketuniversitario.feature.business.data.models.toDomain
 import com.example.marketuniversitario.feature.business.data.models.toRoomEntity
 import com.example.marketuniversitario.feature.business.data.workers.SyncProductWorker
 import com.example.marketuniversitario.feature.business.domain.models.Product
+import com.example.marketuniversitario.feature.business.domain.repositories.BusinessStorageRepository
 import com.example.marketuniversitario.feature.business.domain.repositories.ProductRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
@@ -24,7 +24,8 @@ import kotlin.time.Duration.Companion.milliseconds
 class ProductRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val localDataSource: ProductLocalDataSource,
-    private val remoteDataSource: ProductRemoteDataSource
+    private val remoteDataSource: ProductRemoteDataSource,
+    private val storageRepository: BusinessStorageRepository
 ) : ProductRepository {
 
     override suspend fun createProduct(product: Product): Result<Product> {
@@ -58,7 +59,7 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun getProduct(productId: String): Result<Product?> {
         return try {
             // 1. Intentar actualizar desde remoto con un timeout rápido (3 segundos) si hay red
-            val remoteEntity =try {
+            val remoteEntity = try {
                 withTimeoutOrNull(3000.milliseconds) {
                     remoteDataSource.getProduct(productId)
                 }
@@ -169,6 +170,18 @@ class ProductRepositoryImpl @Inject constructor(
 
     override suspend fun deleteProduct(productId: String): Result<Unit> {
         return try {
+            // 1. Obtener el producto local para extraer las imágenes en Firebase Storage
+            val localEntity = localDataSource.getProductById(productId)
+            val images = localEntity?.images?.let { if (it.isBlank()) emptyList() else it.split(",") } ?: emptyList()
+
+            // 2. Eliminar las imágenes asociadas de Firebase Storage
+            for (imageUrl in images) {
+                if (imageUrl.isNotBlank() && imageUrl.startsWith("http")) {
+                    storageRepository.deleteImage(imageUrl)
+                }
+            }
+
+            // 3. Eliminar local y remotamente
             localDataSource.deleteProduct(productId)
             remoteDataSource.deleteProduct(productId)
             Result.success(Unit)

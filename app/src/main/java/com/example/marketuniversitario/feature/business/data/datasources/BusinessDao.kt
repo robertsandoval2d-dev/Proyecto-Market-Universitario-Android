@@ -17,6 +17,9 @@ interface BusinessDao {
     @Query("SELECT * FROM businesses WHERE isSynced = 0")
     suspend fun getUnsyncedBusinesses(): List<BusinessRoomEntity>
 
+    @Query("UPDATE businesses SET bannerUrl = :bannerUrl WHERE id = :businessId")
+    suspend fun updateBusinessBannerUrl(businessId: String, bannerUrl: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBusiness(business: BusinessRoomEntity)
 
@@ -25,7 +28,6 @@ interface BusinessDao {
 
     @Query("UPDATE businesses SET isSynced = 1 WHERE id = :businessId")
     suspend fun markAsSynced(businessId: String)
-    
-    @Query("DELETE FROM businesses WHERE id = :businessId")
-    suspend fun deleteBusiness(businessId: String)
+
+
 }

@@ -25,4 +25,13 @@ class BusinessStorageRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun deleteImage(imageUrl: String): Result<Unit> {
+        return try {
+            remoteDataSource.deleteImage(imageUrl)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

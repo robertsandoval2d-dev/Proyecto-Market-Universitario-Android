@@ -10,12 +10,12 @@ class BusinessLocalDataSource @Inject constructor(
         return businessDao.getBusinessById(businessId)
     }
 
-    suspend fun getBusinessesByOwner(ownerId: String): List<BusinessRoomEntity> {
-        return businessDao.getBusinessesByOwner(ownerId)
-    }
-
     suspend fun getUnsyncedBusinesses(): List<BusinessRoomEntity> {
         return businessDao.getUnsyncedBusinesses()
+    }
+
+    suspend fun updateBusinessBannerUrl(businessId: String, bannerUrl: String) {
+        businessDao.updateBusinessBannerUrl(businessId, bannerUrl)
     }
 
     suspend fun saveBusiness(business: BusinessRoomEntity) {
@@ -25,8 +25,5 @@ class BusinessLocalDataSource @Inject constructor(
     suspend fun markAsSynced(businessId: String) {
         businessDao.markAsSynced(businessId)
     }
-    
-    suspend fun deleteBusiness(businessId: String) {
-        businessDao.deleteBusiness(businessId)
-    }
+
 }

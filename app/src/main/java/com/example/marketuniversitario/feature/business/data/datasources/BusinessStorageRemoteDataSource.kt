@@ -34,4 +34,16 @@ class BusinessStorageRemoteDataSource @Inject constructor(
 
             return@withContext downloadUrl.toString()
         }
+
+    suspend fun deleteImage(imageUrl: String) = withContext(Dispatchers.IO) {
+        if (imageUrl.isNotBlank() && imageUrl.startsWith("http")) {
+            try {
+                val ref = storage.getReferenceFromUrl(imageUrl)
+                ref.delete().await()
+            } catch (e: Exception) {
+                // Si la imagen ya no existe o hay error de red, lo ignoramos para no bloquear la eliminación del producto
+                e.printStackTrace()
+            }
+        }
+    }
 }

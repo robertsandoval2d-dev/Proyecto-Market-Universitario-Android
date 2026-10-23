@@ -49,6 +49,8 @@ class SyncProductWorker @AssistedInject constructor(
                     if (downloadUrl != null) {
                         images = listOf(downloadUrl)
                         Log.d(TAG, "Image uploaded successfully: $downloadUrl")
+                        // Actualizar de inmediato la URL permanente en SQLite local
+                        localDataSource.updateProductImageUrl(product.id, downloadUrl)
                     } else {
                         Log.e(TAG, "Failed to upload image for product ${product.id}: ${uploadResult.exceptionOrNull()?.message}")
                         return Result.retry()

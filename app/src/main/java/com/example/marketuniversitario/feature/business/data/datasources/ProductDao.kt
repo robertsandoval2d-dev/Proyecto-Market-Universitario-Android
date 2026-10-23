@@ -20,6 +20,9 @@ interface ProductDao {
     @Query("UPDATE products SET businessName = :newBusinessName WHERE businessId = :businessId")
     suspend fun updateBusinessNameInProducts(businessId: String, newBusinessName: String)
 
+    @Query("UPDATE products SET images = :imageUrl WHERE id = :productId")
+    suspend fun updateProductImageUrl(productId: String, imageUrl: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProduct(product: ProductRoomEntity)
 

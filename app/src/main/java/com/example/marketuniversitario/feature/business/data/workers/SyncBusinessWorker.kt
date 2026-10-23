@@ -52,6 +52,8 @@ class SyncBusinessWorker @AssistedInject constructor(
                     if (downloadUrl != null) {
                         bannerUrl = downloadUrl
                         Log.d(TAG, "Banner image uploaded successfully: $downloadUrl")
+                        // Actualizar de inmediato el URL permanente del banner en SQLite local
+                        localDataSource.updateBusinessBannerUrl(business.id, downloadUrl)
                     } else {
                         Log.e(TAG, "Failed to upload banner image for business ${business.id}: ${uploadResult.exceptionOrNull()?.message}")
                         return Result.retry()
@@ -64,13 +66,14 @@ class SyncBusinessWorker @AssistedInject constructor(
                 Log.d(TAG, "Saving business to Firestore: ${businessToUpload.id}")
                 remoteDataSource.updateBusiness(businessToUpload.toEntity())
 
-                // Actualizar el nombre del negocio en todos sus productos (Remoto y Local SQLite)
+                // Actualizar el nombre del negocio en todos sus productos (Remoto y Local SQLite) con reintento si falla
                 try {
                     productRemoteDataSource.updateBusinessNameInProducts(business.id, business.name)
                     productLocalDataSource.updateBusinessNameInProducts(business.id, business.name)
                     Log.d(TAG, "Business name updated in all associated products for: ${business.id}")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to update business name in products during business sync", e)
+                    return Result.retry()
                 }
 
                 // Marcar como sincronizado en local

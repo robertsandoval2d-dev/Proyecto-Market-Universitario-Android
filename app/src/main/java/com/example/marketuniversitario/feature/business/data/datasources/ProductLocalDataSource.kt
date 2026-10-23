@@ -22,6 +22,10 @@ class ProductLocalDataSource @Inject constructor(
         productDao.updateBusinessNameInProducts(businessId, newBusinessName)
     }
 
+    suspend fun updateProductImageUrl(productId: String, imageUrl: String) {
+        productDao.updateProductImageUrl(productId, imageUrl)
+    }
+
     suspend fun saveProduct(product: ProductRoomEntity) {
         productDao.insertProduct(product)
     }
