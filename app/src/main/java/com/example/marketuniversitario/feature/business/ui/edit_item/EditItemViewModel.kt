@@ -58,10 +58,26 @@ class EditItemViewModel @Inject constructor(
                 }
             }
             is EditItemEvent.StockChanged -> {
-                val newStock = event.stock.filter { it.isDigit() } // Solo números
+                val newStock = event.stock.filter { it.isDigit() }
                 _state.update { it.copy(stock = newStock) }
             }
-            is EditItemEvent.CategoryChanged -> _state.update { it.copy(category = event.category) }
+            is EditItemEvent.CategoryChanged -> {
+                _state.update { 
+                    it.copy(
+                        category = event.category,
+                        tags = emptyList() // Al cambiar de categoría general, limpiamos los tags seleccionados previos
+                    ) 
+                }
+            }
+            is EditItemEvent.TagToggled -> {
+                val currentTags = _state.value.tags.toMutableList()
+                if (currentTags.contains(event.tag)) {
+                    currentTags.remove(event.tag)
+                } else {
+                    currentTags.add(event.tag)
+                }
+                _state.update { it.copy(tags = currentTags) }
+            }
             is EditItemEvent.PhotoChanged -> _state.update { it.copy(photoUrl = event.url) }
             is EditItemEvent.SaveItem -> saveItem()
             is EditItemEvent.ResetStatus -> _state.update { it.copy(status = EditItemStatus.Idle) }
@@ -79,8 +95,9 @@ class EditItemViewModel @Inject constructor(
                                 name = product.name,
                                 description = product.description,
                                 price = product.price.toString(),
-                                stock = product.stock?.toString() ?: "", // Convertimos Int a String
-                                category = product.category, // Ya guarda el ID en DB (ej. "Technology")
+                                stock = product.stock?.toString() ?: "",
+                                category = product.category,
+                                tags = product.tags,
                                 photoUrl = product.images.firstOrNull(),
                                 itemType = try { ItemType.valueOf(product.type) } catch (e: Exception) { ItemType.PRODUCT },
                                 status = EditItemStatus.Idle
@@ -127,7 +144,8 @@ class EditItemViewModel @Inject constructor(
                 description = currentState.description.trim(),
                 price = parsedPrice,
                 type = currentState.itemType.name,
-                category = currentState.category, // Ya es el ID (ej. "Technology")
+                category = currentState.category,
+                tags = currentState.tags,
                 images = currentState.photoUrl?.let { listOf(it) } ?: emptyList(),
                 stock = if (currentState.itemType == ItemType.PRODUCT) parsedStock else null,
                 isAvailable = true

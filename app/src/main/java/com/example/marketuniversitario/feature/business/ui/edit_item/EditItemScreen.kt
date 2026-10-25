@@ -137,7 +137,7 @@ fun EditItemContent(
                 .fillMaxSize()
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                 .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 24.dp, vertical = 10.dp)
                 .imePadding()
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -294,6 +294,46 @@ fun EditItemContent(
                                 categoryExpanded = false
                             }
                         )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Sección: Etiquetas (Tags) acorde a la categoría elegida
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Etiquetas (Tags)",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (state.category.isBlank()) {
+                    Text(
+                        text = "Selecciona una categoría general primero para habilitar y elegir etiquetas.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        state.availableTags.forEach { tag ->
+                            val isSelected = state.tags.contains(tag)
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { onEvent(EditItemEvent.TagToggled(tag)) },
+                                label = { Text(tag) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            )
+                        }
                     }
                 }
             }

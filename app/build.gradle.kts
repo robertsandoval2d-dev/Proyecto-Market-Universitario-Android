@@ -89,6 +89,8 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-vertexai")
+    implementation("com.google.code.gson:gson:2.11.0")
 
     // Google Credential Manager
     implementation(libs.androidx.credentials)

@@ -9,4 +9,5 @@ interface UserRepository {
     fun getUserStream(userId: String): Flow<User?>
     suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?): Result<Unit>
     suspend fun updateUserProfile(user: User): Result<Unit>
+    suspend fun addRecentSearch(userId: String, searchQuery: String): Result<Unit>
 }

@@ -20,6 +20,8 @@ data class UserEntity(
     val primaryIntent: String? = null,
     @get:PropertyName("isProfileComplete") @set:PropertyName("isProfileComplete")
     var isProfileComplete: Boolean = false,
+    val recentSearches: List<String> = emptyList(),
+    val affinityScores: Map<String, Int> = emptyMap(),
 
     val createdAt: Long = System.currentTimeMillis()
 )
@@ -37,7 +39,9 @@ fun User.toEntity() = UserEntity(
     faculty = this.faculty,
     gender = this.gender,
     primaryIntent = this.primaryIntent,
-    isProfileComplete = this.isProfileComplete
+    isProfileComplete = this.isProfileComplete,
+    recentSearches = this.recentSearches,
+    affinityScores = this.affinityScores
 )
 
 fun UserEntity.toDomain() = User(
@@ -53,5 +57,7 @@ fun UserEntity.toDomain() = User(
     faculty = this.faculty,
     gender = this.gender,
     primaryIntent = this.primaryIntent,
-    isProfileComplete = this.isProfileComplete
+    isProfileComplete = this.isProfileComplete,
+    recentSearches = this.recentSearches,
+    affinityScores = this.affinityScores
 )

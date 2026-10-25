@@ -23,6 +23,12 @@ interface ProductDao {
     @Query("UPDATE products SET images = :imageUrl WHERE id = :productId")
     suspend fun updateProductImageUrl(productId: String, imageUrl: String)
 
+    @Query("UPDATE products SET salesCount = salesCount + 1, isSynced = 0 WHERE id = :productId")
+    suspend fun incrementSalesCount(productId: String)
+
+    @Query("UPDATE products SET views = views + 1, isSynced = 0 WHERE id = :productId")
+    suspend fun incrementViews(productId: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProduct(product: ProductRoomEntity)
 

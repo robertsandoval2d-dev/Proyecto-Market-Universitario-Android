@@ -136,6 +136,10 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getOrderById(orderId: String): Order? {
+        return localDataSource.getOrderById(orderId)?.toDomain()
+    }
+
     override fun getMessagesForOrder(orderId: String): Flow<List<Message>> {
         // Sincronizar mensajes en segundo plano si hay conexión (respetando isSynced)
         CoroutineScope(Dispatchers.IO).launch {

@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import com.example.marketuniversitario.feature.business.data.datasources.ProductLocalDataSource
 import com.example.marketuniversitario.feature.business.data.datasources.ProductRemoteDataSource
 import com.example.marketuniversitario.feature.business.data.models.toDomain
+import com.example.marketuniversitario.feature.business.data.models.toEntity
 import com.example.marketuniversitario.feature.business.data.models.toRoomEntity
 import com.example.marketuniversitario.feature.business.data.workers.SyncProductWorker
 import com.example.marketuniversitario.feature.business.domain.models.Product
@@ -129,6 +130,15 @@ class ProductRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getCandidateProducts(topTags: List<String>): Result<List<Product>> {
+        return try {
+            val entities = remoteDataSource.getCandidateProducts(topTags)
+            Result.success(entities.map { it.toDomain() })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override fun getProducts(): Flow<List<Product>> {
         return remoteDataSource.observeProducts()
             .map { entity -> entity.map { it.toDomain() } }
@@ -162,6 +172,88 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun updateBusinessNameInProducts(businessId: String, newBusinessName: String): Result<Unit> {
         return try {
             remoteDataSource.updateBusinessNameInProducts(businessId, newBusinessName)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun incrementViews(productId: String): Result<Unit> {
+        return try {
+            // Las vistas las realizan compradores externos, por lo que van directas a remoto
+            remoteDataSource.incrementField(productId, "views")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun incrementSalesCount(productId: String): Result<Unit> {
+        return try {
+            // Como el producto pertenece al vendedor local, incrementSalesCount es Offline-First
+            localDataSource.incrementSalesCount(productId)
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val workRequest = OneTimeWorkRequestBuilder<SyncProductWorker>()
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "sync_products_work",
+                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                workRequest
+            )
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun releaseReservedStock(productId: String, quantity: Int): Result<Unit> {
+        return try {
+            val productResult = getProduct(productId)
+            val product = productResult.getOrNull() ?: return Result.failure(Exception("Producto no encontrado"))
+
+            val currentReserved = product.reservedStock ?: 0
+            val newReserved = (currentReserved - quantity).coerceAtLeast(0)
+
+            val updatedProduct = if (product.stock != null) {
+                val newStock = product.stock + quantity
+                product.copy(
+                    reservedStock = newReserved,
+                    stock = newStock,
+                    isAvailable = newStock > 0
+                )
+            } else {
+                product.copy(
+                    reservedStock = newReserved
+                )
+            }
+
+            remoteDataSource.updateProduct(updatedProduct.toEntity())
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun confirmReservedStock(productId: String, quantity: Int): Result<Unit> {
+        return try {
+            val productResult = getProduct(productId)
+            val product = productResult.getOrNull() ?: return Result.failure(Exception("Producto no encontrado"))
+
+            val currentReserved = product.reservedStock ?: 0
+            val newReserved = (currentReserved - quantity).coerceAtLeast(0)
+
+            val updatedProduct = product.copy(
+                reservedStock = newReserved
+            )
+
+            remoteDataSource.updateProduct(updatedProduct.toEntity())
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

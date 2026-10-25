@@ -26,6 +26,14 @@ class ProductLocalDataSource @Inject constructor(
         productDao.updateProductImageUrl(productId, imageUrl)
     }
 
+    suspend fun incrementSalesCount(productId: String) {
+        productDao.incrementSalesCount(productId)
+    }
+
+    suspend fun incrementViews(productId: String) {
+        productDao.incrementViews(productId)
+    }
+
     suspend fun saveProduct(product: ProductRoomEntity) {
         productDao.insertProduct(product)
     }

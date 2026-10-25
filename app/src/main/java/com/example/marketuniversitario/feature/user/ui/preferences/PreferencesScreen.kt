@@ -87,11 +87,11 @@ fun PreferencesScreen(
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Checkbox(
-                                        checked = state.selectedPreferences.contains(pref),
-                                        onCheckedChange = { onEvent(PreferencesEvent.TogglePreference(pref)) }
+                                        checked = state.selectedPreferences.contains(pref.id),
+                                        onCheckedChange = { onEvent(PreferencesEvent.TogglePreference(pref.id)) }
                                     )
                                     Text(
-                                        text = pref,
+                                        text = pref.displayName,
                                         style = MaterialTheme.typography.bodyMedium,
                                         modifier = Modifier.padding(end = 4.dp)
                                     )

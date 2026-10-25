@@ -398,17 +398,17 @@ fun Step2Preferences(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(ProfileConstants.defaultPreferences) { preference ->
-                val isSelected = state.selectedPreferences.contains(preference)
+                val isSelected = state.selectedPreferences.contains(preference.id)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onEvent(ProfileCompletionEvent.PreferenceToggled(preference)) }
+                    modifier = Modifier.clickable { onEvent(ProfileCompletionEvent.PreferenceToggled(preference.id)) }
                 ) {
                     Checkbox(
                         checked = isSelected,
-                        onCheckedChange = { onEvent(ProfileCompletionEvent.PreferenceToggled(preference)) }
+                        onCheckedChange = { onEvent(ProfileCompletionEvent.PreferenceToggled(preference.id)) }
                     )
                     Text(
-                        text = preference,
+                        text = preference.displayName,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 2
                     )

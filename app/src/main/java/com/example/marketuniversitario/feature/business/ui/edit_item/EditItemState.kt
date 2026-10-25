@@ -19,6 +19,7 @@ data class EditItemState(
     val price: String = "",
     val stock: String = "",
     val category: String = "",
+    val tags: List<String> = emptyList(),
     val photoUrl: String? = null,
     
     val isEditMode: Boolean = false,
@@ -26,6 +27,9 @@ data class EditItemState(
 ) {
     val selectedCategoryDisplayName: String
         get() = ProductCategory.fromId(category).displayName
+
+    val availableTags: List<String>
+        get() = ProductCategory.fromId(category).tags
 }
 
 sealed interface EditItemEvent {
@@ -34,6 +38,7 @@ sealed interface EditItemEvent {
     data class PriceChanged(val price: String) : EditItemEvent
     data class StockChanged(val stock: String) : EditItemEvent
     data class CategoryChanged(val category: String) : EditItemEvent
+    data class TagToggled(val tag: String) : EditItemEvent
     data class PhotoChanged(val url: String?) : EditItemEvent
     
     object SaveItem : EditItemEvent

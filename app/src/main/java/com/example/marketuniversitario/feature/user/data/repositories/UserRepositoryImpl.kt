@@ -87,7 +87,6 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?): Result<Unit> {
         return try {
-            // Actualización local rápida primero
             val localUser = localDataSource.getUserById(userId)
             if (localUser != null) {
                 val updatedUser = localUser.copy(
@@ -138,6 +137,24 @@ class UserRepositoryImpl @Inject constructor(
             )
 
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun addRecentSearch(userId: String, searchQuery: String): Result<Unit> {
+        return try {
+            val userResult = getUser(userId)
+            val user = userResult.getOrNull() ?: return Result.failure(Exception("Usuario no encontrado"))
+
+            val trimmedQuery = searchQuery.trim()
+            if (trimmedQuery.isBlank()) return Result.success(Unit)
+
+            // Evitar duplicados (mover al principio) y mantener máximo 5 elementos (FIFO)
+            val updatedSearches = (listOf(trimmedQuery) + user.recentSearches.filter { !it.equals(trimmedQuery, ignoreCase = true) }).take(5)
+
+            val updatedUser = user.copy(recentSearches = updatedSearches)
+            saveUser(updatedUser)
         } catch (e: Exception) {
             Result.failure(e)
         }
