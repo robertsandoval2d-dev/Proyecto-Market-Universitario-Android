@@ -28,6 +28,24 @@ fun Product.toFeedProduct(): FeedProduct {
         businessName = this.businessName,
         name = this.name,
         price = this.price,
-        imageUrl = this.images.firstOrNull() ?: ""
+        category = this.category,
+        imageUrl = this.images.firstOrNull() ?: "",
+        isAvailable = this.isAvailable,
+        allTags = this.tags,
+        searchKeywords = this.buildSearchKeywords(),
+        createdAt = this.createdAt
     )
 }
+
+/**
+ * Palabras extra para el buscador: descripción y nombre del negocio.
+ * Se calcula al mapear; no se guarda en Firestore. El buscador normaliza
+ * tildes y mayúsculas, aquí solo se separa y se filtra por longitud.
+ */
+private fun Product.buildSearchKeywords(): List<String> =
+    "$description $businessName"
+        .lowercase()
+        .split(Regex("[^\\p{L}\\p{N}]+"))
+        .filter { it.length >= 4 }
+        .distinct()
+        .take(40)

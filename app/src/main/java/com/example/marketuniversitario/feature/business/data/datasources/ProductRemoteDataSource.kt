@@ -2,6 +2,7 @@ package com.example.marketuniversitario.feature.business.data.datasources
 
 import com.example.marketuniversitario.feature.business.data.models.ProductEntity
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -32,17 +33,24 @@ class ProductRemoteDataSource @Inject constructor(
     }
 
     suspend fun getCandidateProducts(topTags: List<String>): List<ProductEntity> {
-        val query = firestore.collection("products")
-        val snapshot = if (topTags.isNotEmpty()) {
-            query.whereArrayContainsAny("tags", topTags.take(10))
-                .limit(30)
-                .get()
-                .await()
+        val products = firestore.collection("products")
+
+        val query = if (topTags.isNotEmpty()) {
+            val seeds = topTags.take(10)
+            products.where(
+                Filter.and(
+                    Filter.equalTo("available", true),
+                    Filter.or(
+                        Filter.arrayContainsAny("tags", seeds),
+                        Filter.inArray("category", seeds)
+                    )
+                )
+            )
         } else {
-            query.limit(30)
-                .get()
-                .await()
+            products.whereEqualTo("available", true)
         }
+
+        val snapshot = query.limit(30).get().await()
         return snapshot.documents.mapNotNull { it.toObject(ProductEntity::class.java) }
     }
 

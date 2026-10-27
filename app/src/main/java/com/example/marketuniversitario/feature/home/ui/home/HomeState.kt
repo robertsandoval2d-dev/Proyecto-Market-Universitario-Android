@@ -22,6 +22,7 @@ data class HomeState(
     val selectedCategory: ProductCategory? = null,
     val selectedTagId: String? = null,
     val query: String? = null,
+    val activeQuery: String? = null,
 
     //Other search options
     val showSearchOptions: Boolean = false,
@@ -54,7 +55,7 @@ sealed interface HomeEvent {
     data class QueryChanged(val query: String) : HomeEvent
     data class CategorySelected(val categoryId: ProductCategory?) : HomeEvent
     data class TagSelected(val tagId: String?) : HomeEvent
-//    object Search : HomeEvent
+    object Search : HomeEvent
 
     //Eventos buscar con imagen
     object ShowSearchOptions : HomeEvent

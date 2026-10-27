@@ -6,10 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.usecases.GetCurrentUserIdUseCase
 import com.example.marketuniversitario.feature.business.domain.usecases.GetPublicProductUseCase
 import com.example.marketuniversitario.feature.business.domain.usecases.IncrementProductViewUseCase
+import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
 import com.example.marketuniversitario.feature.home.domain.usecases.GetFeedProductsUseCase
 import com.example.marketuniversitario.feature.home.domain.usecases.GetUserSummaryUseCase
+import com.example.marketuniversitario.feature.home.domain.usecases.SearchProductsUseCase
 import com.example.marketuniversitario.feature.recomendation.domain.models.InteractionType
+import com.example.marketuniversitario.feature.recomendation.domain.usecases.GetPersonalizedFeedUseCase
 import com.example.marketuniversitario.feature.recomendation.domain.usecases.TrackInteractionUseCase
+import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
+import com.example.marketuniversitario.feature.user.domain.usecases.AddRecentSearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,14 +31,21 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getUserSummaryUseCase: GetUserSummaryUseCase,
     private val getFeedProductsUseCase: GetFeedProductsUseCase,
+    private val getPersonalizedFeedUseCase: GetPersonalizedFeedUseCase,
     private val getPublicProductUseCase: GetPublicProductUseCase,
     private val incrementProductViewUseCase: IncrementProductViewUseCase,
     private val trackInteractionUseCase: TrackInteractionUseCase,
-    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+    private val searchProductsUseCase: SearchProductsUseCase,
+    private val addRecentSearchUseCase: AddRecentSearchUseCase,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
+
+    // Feed completo (ya ordenado por la IA). state.products es lo que se muestra.
+    private var allProducts: List<FeedProduct> = emptyList()
 
     init {
         loadUser()
@@ -76,7 +88,8 @@ class HomeViewModel @Inject constructor(
             }
             is HomeEvent.RequestProductSelected -> _state.update { it.copy(requestProductId = event.productId) }
 
-            is HomeEvent.QueryChanged -> _state.update { it.copy(query = event.query) }
+            is HomeEvent.QueryChanged -> onQueryChanged(event.query)
+            is HomeEvent.Search -> search()
             is HomeEvent.CategorySelected -> _state.update { it.copy(selectedCategory = event.categoryId) }
             is HomeEvent.TagSelected -> _state.update { it.copy(selectedTagId = event.tagId) }
 
@@ -89,21 +102,61 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    // ---------------------------------------------------------------- Búsqueda
+
+    /** Mientras se escribe solo cambia el texto; si queda vacío, se restaura el feed. */
+    private fun onQueryChanged(query: String) {
+        _state.update {
+            if (query.isBlank() && it.activeQuery != null) {
+                it.copy(query = query, activeQuery = null, products = allProducts)
+            } else {
+                it.copy(query = query)
+            }
+        }
+    }
+
+    /** Se ejecuta al enviar la búsqueda: filtra y guarda la frase en recent searches. */
+    private fun search() {
+        val query = _state.value.query.orEmpty().trim()
+        if (query.isBlank()) {
+            _state.update { it.copy(activeQuery = null, products = allProducts) }
+            return
+        }
+
+        _state.update {
+            it.copy(
+                activeQuery = query,
+                products = searchProductsUseCase(allProducts, query)
+            )
+        }
+        saveRecentSearch(query)
+    }
+
+    private fun saveRecentSearch(query: String) {
+        viewModelScope.launch {
+            val uid = getCurrentUserIdUseCase()
+            if (uid.isNullOrBlank()) return@launch
+            addRecentSearchUseCase(uid, query)
+                .onSuccess { Log.d("HomeViewModel", "Búsqueda guardada: $query") }
+                .onFailure { Log.e("HomeViewModel", "No se pudo guardar la búsqueda: ${it.message}", it) }
+        }
+    }
+
+    /** Lista a mostrar según la búsqueda activa. */
+    private fun visibleProducts(activeQuery: String?): List<FeedProduct> =
+        if (activeQuery.isNullOrBlank()) allProducts
+        else searchProductsUseCase(allProducts, activeQuery)
+
+    // ---------------------------------------------------------------- Carga
+
     private fun loadUser() {
         viewModelScope.launch {
             try {
                 val userInfo = getUserSummaryUseCase()
-
-                _state.update {
-                    it.copy(
-                        userSummary = userInfo
-                    )
-                }
+                _state.update { it.copy(userSummary = userInfo) }
             } catch (_: Exception) {
-
             }
         }
-
     }
 
     private var productsJob: Job? = null
@@ -111,15 +164,54 @@ class HomeViewModel @Inject constructor(
         productsJob?.cancel()
         productsJob = viewModelScope.launch {
             _state.update { it.copy(status = HomeStatus.Loading) }
-            getFeedProductsUseCase()
-                .catch { e -> _state.update { it.copy(status = HomeStatus.Error(e.message ?: "Error al cargar la lista de productos")) } }
-                .onEach { products ->
-                    _state.update {
-                        it.copy(products = products,
-                            status = HomeStatus.Success)
-                    }
+            try {
+                /*
+                --- Recomendación por IA desactivada temporalmente ---
+                val uid = getCurrentUserIdUseCase()
+                val user = uid?.let { userRepository.getUser(uid).getOrNull() }
+
+                val rankedIds = if (user != null) {
+                    getPersonalizedFeedUseCase(user).getOrDefault(emptyList())
+                } else {
+                    emptyList()
                 }
-                .launchIn(viewModelScope)
+                */
+                val rankedIds = emptyList<String>()
+
+                getFeedProductsUseCase()
+                    .catch { e -> _state.update { it.copy(status = HomeStatus.Error(e.message ?: "Error al cargar la lista de productos")) } }
+                    .onEach { products ->
+                        val sortedProducts = if (rankedIds.isNotEmpty()) {
+                            val rankMap = rankedIds.withIndex().associate { it.value to it.index }
+                            products.sortedBy { product -> rankMap[product.id] ?: Int.MAX_VALUE }
+                        } else {
+                            products
+                        }
+
+                        allProducts = sortedProducts
+                        _state.update {
+                            it.copy(
+                                products = visibleProducts(it.activeQuery),
+                                status = HomeStatus.Success
+                            )
+                        }
+                    }
+                    .launchIn(this) // antes: viewModelScope (ver nota abajo)
+            } catch (_: Exception) {
+                // Fallback a feed normal si ocurre algún error con la IA
+                getFeedProductsUseCase()
+                    .catch { err -> _state.update { it.copy(status = HomeStatus.Error(err.message ?: "Error al cargar la lista de productos")) } }
+                    .onEach { products ->
+                        allProducts = products
+                        _state.update {
+                            it.copy(
+                                products = visibleProducts(it.activeQuery),
+                                status = HomeStatus.Success
+                            )
+                        }
+                    }
+                    .launchIn(this)
+            }
         }
     }
 

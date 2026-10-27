@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -50,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -102,7 +104,7 @@ fun HomeScreen(
             onTagSelected = { tag ->
                 onEvent(HomeEvent.DismissSearchOptions)
                 onEvent(HomeEvent.QueryChanged(tag))
-//                onEvent(HomeEvent.Search)
+                onEvent(HomeEvent.Search)
             }
         )
     }
@@ -117,7 +119,7 @@ fun HomeScreen(
             query = state.query,
             onQueryChange = { onEvent(HomeEvent.QueryChanged(it)) },
             onSearchWithImageClick = { onEvent(HomeEvent.ShowSearchOptions) },
-//            onSearchClick = { onEvent(HomeEvent.Search) },
+            onSearchClick = { onEvent(HomeEvent.Search) },
             onNotificationClick = { onEvent(HomeEvent.ShowNotification)}
         )
         Box(
@@ -133,8 +135,15 @@ fun HomeScreen(
                 status is HomeStatus.Error ->
                     Text(text = status.message)
                 status is HomeStatus.Success && state.products.isEmpty() ->
-                    Text("No encontramos productos", Modifier.align(Alignment.Center))
+                    Text(
+                        text = if (state.activeQuery != null)
+                            "No encontramos resultados para “${state.activeQuery}”"
+                        else
+                            "No encontramos productos",
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 else -> HomeContent(
+                    title = state.activeQuery?.let { "Resultados para “$it”" } ?: "Productos recomendados",
                     products = state.products,
                     onProductClick = { product ->
                         onEvent(HomeEvent.SelectProductQuickView(product))
@@ -151,9 +160,10 @@ fun HomeHeader(
     query: String?,
     onQueryChange: (String) -> Unit,
     onSearchWithImageClick : () -> Unit,
-//    onSearchClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onNotificationClick: () -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -257,8 +267,13 @@ fun HomeHeader(
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Text,
                             imeAction = ImeAction.Search
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                onSearchClick()
+                                focusManager.clearFocus()
+                            }
                         )
-
                     )
                     val interactionSource = remember { MutableInteractionSource() }
                     val isPressed by interactionSource.collectIsPressedAsState()
@@ -296,7 +311,10 @@ fun HomeHeader(
                             .size(32.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primaryContainer)
-                            ,
+                            .clickable {
+                                onSearchClick()
+                                focusManager.clearFocus()
+                            },
                         contentAlignment = Alignment.Center
                     ){
                         Icon(
@@ -313,6 +331,7 @@ fun HomeHeader(
 
 @Composable
 fun HomeContent(
+    title: String,
     products: List<FeedProduct>,
     onProductClick: (FeedProduct) -> Unit,
     modifier: Modifier = Modifier
@@ -326,7 +345,7 @@ fun HomeContent(
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Text(
-                text = "Productos recomendados",
+                text = title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
