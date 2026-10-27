@@ -3,7 +3,7 @@ package com.example.marketuniversitario.feature.auth.ui.login
 sealed interface LoginStatus {
     object Idle : LoginStatus
     object Loading : LoginStatus
-    data class Success(val isProfileComplete: Boolean) : LoginStatus
+    data class Success(val isProfileComplete: Boolean, val isAdmin: Boolean = false) : LoginStatus
     data class Error(val message: String) : LoginStatus
 }
 

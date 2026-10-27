@@ -174,7 +174,7 @@ fun LoginScreen(
 @Composable
 fun LoginRoute(
     viewModel: LoginViewModel,
-    onLoginSuccess: (Boolean) -> Unit,
+    onLoginSuccess: (Boolean, Boolean) -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -199,7 +199,7 @@ fun LoginRoute(
         is LoginStatus.Success -> {
             LaunchedEffect(Unit) {
                 viewModel.onEvent(LoginEvent.DismissDialog)
-                onLoginSuccess(status.isProfileComplete)
+                onLoginSuccess(status.isProfileComplete, status.isAdmin)
             }
         }
         LoginStatus.Loading -> {

@@ -3,7 +3,7 @@ package com.example.marketuniversitario.feature.user.ui.profile_completion
 sealed interface ProfileCompletionStatus {
     object Idle : ProfileCompletionStatus
     object Loading : ProfileCompletionStatus
-    object Success : ProfileCompletionStatus
+    data class Success(val isAdmin: Boolean = false) : ProfileCompletionStatus
     object LoggedOut : ProfileCompletionStatus
     data class Error(val message: String) : ProfileCompletionStatus
 }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 import androidx.lifecycle.SavedStateHandle
+import com.example.marketuniversitario.feature.user.domain.usecases.CheckUserIsAdminUseCase
 import com.example.marketuniversitario.feature.user.domain.usecases.UploadProfileImageUseCase
 import javax.inject.Inject
 
@@ -24,7 +25,8 @@ class ProfileCompletionViewModel @Inject constructor(
     private val getUserProfileInfoUseCase: GetUserProfileInfoUseCase,
     private val uploadProfileImageUseCase: UploadProfileImageUseCase,
     private val completeUserProfileUseCase: CompleteUserProfileUseCase,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -186,7 +188,8 @@ class ProfileCompletionViewModel @Inject constructor(
                         primaryIntent = currentState.primaryIntent,
                         photoUrl = uploadedPhotoUrl
                     ).onSuccess {
-                        _state.update { it.copy(status = ProfileCompletionStatus.Success) }
+                        val isAdmin = checkUserIsAdminUseCase().getOrDefault(false)
+                        _state.update { it.copy(status = ProfileCompletionStatus.Success(isAdmin)) }
                     }.onFailure { error ->
                         _state.update { it.copy(status = ProfileCompletionStatus.Error(error.message ?: "Error al guardar el perfil")) }
                     }

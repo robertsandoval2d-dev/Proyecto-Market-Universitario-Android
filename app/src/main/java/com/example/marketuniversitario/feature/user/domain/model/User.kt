@@ -14,6 +14,7 @@ data class User (
     val gender: String? = null,
     val primaryIntent: String? = null,
     val isProfileComplete: Boolean = false,
+    val isAdmin: Boolean = false,
     val recentSearches: List<String> = emptyList(),
     val affinityScores: Map<String, Int> = emptyMap()
 )

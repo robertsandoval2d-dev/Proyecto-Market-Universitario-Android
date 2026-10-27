@@ -20,8 +20,10 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
             onNavigateToSignUpScreen = {
                 navHostController.navigate("signup")
             },
-            onLoginSuccess = { isProfileComplete ->
-                val destination = if (isProfileComplete) "inicio" else "profile_completion"
+            onLoginSuccess = { isProfileComplete, isAdmin ->
+                val destination = if (!isProfileComplete) "profile_completion"
+                else if (isAdmin) "role_selection"
+                else "inicio"
                 navHostController.navigate(destination) {
                     popUpTo("welcome") { inclusive = true }
                 }
@@ -38,8 +40,10 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
             onNavigateBack = {
                 navHostController.navigateUp()
             },
-            onNavigateHome = { isProfileComplete ->
-                val destination = if (isProfileComplete) "inicio" else "profile_completion"
+            onNavigateHome = { isProfileComplete, isAdmin ->
+                val destination = if (!isProfileComplete) "profile_completion"
+                else if (isAdmin) "role_selection"
+                else "inicio"
                 navHostController.navigate(destination) {
                     popUpTo("welcome") { inclusive = true }
                 }
@@ -50,8 +54,10 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
     composable("login") {
         LoginRoute(
             viewModel = hiltViewModel(),
-            onLoginSuccess = { isProfileComplete ->
-                val destination = if (isProfileComplete) "inicio" else "profile_completion"
+            onLoginSuccess = { isProfileComplete, isAdmin ->
+                val destination = if (!isProfileComplete) "profile_completion"
+                else if (isAdmin) "role_selection"
+                else "inicio"
                 navHostController.navigate(destination) {
                     popUpTo("welcome") { inclusive = true }
                 }
@@ -76,8 +82,9 @@ fun NavGraphBuilder.authGraph(navHostController: NavHostController) {
 
     composable("profile_completion") {
         ProfileCompletionRoute(
-            onNavigateHome = {
-                navHostController.navigate("inicio") {
+            onNavigateHome = { isAdmin ->
+                val destination = if (isAdmin) "role_selection" else "inicio"
+                navHostController.navigate(destination) {
                     popUpTo(navHostController.graph.id) { inclusive = true }
                 }
             },

@@ -179,7 +179,7 @@ fun WelcomeRoute(
     viewModel: WelcomeViewModel,
     onNavigateToLoginScreen: () -> Unit,
     onNavigateToSignUpScreen: () -> Unit,
-    onLoginSuccess: (Boolean) -> Unit,
+    onLoginSuccess: (Boolean, Boolean) -> Unit,
 ){
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -212,7 +212,7 @@ fun WelcomeRoute(
     LaunchedEffect(state.status) {
         val currentStatus = state.status
         if (currentStatus is WelcomeStatus.Success) {
-            onLoginSuccess(currentStatus.isProfileComplete)
+            onLoginSuccess(currentStatus.isProfileComplete, currentStatus.isAdmin)
         }
     }
 }

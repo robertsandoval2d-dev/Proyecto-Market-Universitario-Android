@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
@@ -38,6 +39,7 @@ fun ProfileRoute(
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToTerms: () -> Unit = {},
+    onNavigateToAdminManagement: () -> Unit = {},
     onLogoutSuccess: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -55,7 +57,8 @@ fun ProfileRoute(
         },
         onNavigateToEditProfile = onNavigateToEditProfile,
         onNavigateToPreferences = onNavigateToPreferences,
-        onNavigateToTerms = onNavigateToTerms
+        onNavigateToTerms = onNavigateToTerms,
+        onNavigateToAdminManagement = onNavigateToAdminManagement
     )
 }
 
@@ -65,7 +68,8 @@ fun ProfileScreen(
     onEvent: (ProfileEvent) -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onNavigateToPreferences: () -> Unit,
-    onNavigateToTerms: () -> Unit
+    onNavigateToTerms: () -> Unit,
+    onNavigateToAdminManagement: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
 
@@ -128,6 +132,13 @@ fun ProfileScreen(
                     title = "Términos y Condiciones",
                     onClick = onNavigateToTerms
                 )
+                if (state.user.isAdmin) {
+                    ProfileOptionItem(
+                        icon = Icons.Default.AdminPanelSettings,
+                        title = "Panel de Administración",
+                        onClick = onNavigateToAdminManagement
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))

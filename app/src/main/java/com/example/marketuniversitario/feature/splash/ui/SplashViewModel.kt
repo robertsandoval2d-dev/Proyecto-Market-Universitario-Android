@@ -10,11 +10,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.marketuniversitario.feature.user.domain.usecases.CheckProfileCompletionUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.CheckUserIsAdminUseCase
 
 @HiltViewModel
 class SplashViewModel @Inject constructor (
     private val authRepository: AuthRepository,
-    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase
+    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase,
+    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase
 ) : ViewModel() {
     private val _destination = MutableStateFlow<String?>(null)
     val destination = _destination.asStateFlow()
@@ -36,6 +38,9 @@ class SplashViewModel @Inject constructor (
         if (!authRepository.isEmailVerified()) return "login"
 
         val isProfileComplete = checkProfileCompletionUseCase().getOrDefault(false)
-        return if (isProfileComplete) "inicio" else "profile_completion"
+        if (!isProfileComplete) return "profile_completion"
+
+        val isAdmin = checkUserIsAdminUseCase().getOrDefault(false)
+        return if (isAdmin) "role_selection" else "inicio"
     }
 }

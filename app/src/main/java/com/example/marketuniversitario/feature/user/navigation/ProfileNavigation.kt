@@ -13,6 +13,7 @@ fun NavGraphBuilder.profileGraph(
     onNavigateToEditProfile: () -> Unit,
     onNavigateToPreferences: () -> Unit,
     onNavigateToTerms: () -> Unit,
+    onNavigateToAdminManagement: () -> Unit,
     onLogoutSuccess: () -> Unit
 ) {
     composable("profile_tab") {
@@ -20,6 +21,7 @@ fun NavGraphBuilder.profileGraph(
             onNavigateToEditProfile = onNavigateToEditProfile,
             onNavigateToPreferences = onNavigateToPreferences,
             onNavigateToTerms = onNavigateToTerms,
+            onNavigateToAdminManagement = onNavigateToAdminManagement,
             onLogoutSuccess = onLogoutSuccess
         )
     }

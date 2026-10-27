@@ -20,6 +20,7 @@ data class UserRoomEntity(
     val gender: String?,
     val primaryIntent: String?,
     val isProfileComplete: Boolean,
+    val isAdmin: Boolean = false,
     val recentSearches: String = "",
     val affinityScores: String = "",
     val isSynced: Boolean = false // Para sincronización offline con WorkManager
@@ -39,6 +40,7 @@ fun User.toRoomEntity(isSynced: Boolean = false) = UserRoomEntity(
     gender = this.gender,
     primaryIntent = this.primaryIntent,
     isProfileComplete = this.isProfileComplete,
+    isAdmin = this.isAdmin,
     recentSearches = this.recentSearches.joinToString(","),
     affinityScores = this.affinityScores.entries.joinToString(",") { "${it.key}:${it.value}" },
     isSynced = isSynced
@@ -58,6 +60,7 @@ fun UserRoomEntity.toDomain() = User(
     gender = this.gender,
     primaryIntent = this.primaryIntent,
     isProfileComplete = this.isProfileComplete,
+    isAdmin = this.isAdmin,
     recentSearches = if (this.recentSearches.isBlank()) emptyList() else this.recentSearches.split(","),
     affinityScores = if (this.affinityScores.isBlank()) emptyMap() else this.affinityScores.split(",").associate {
         val parts = it.split(":")

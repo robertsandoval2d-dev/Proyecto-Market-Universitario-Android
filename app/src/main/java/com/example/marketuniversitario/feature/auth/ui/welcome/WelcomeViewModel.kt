@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthException
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignInWithGoogleUseCase
 import com.example.marketuniversitario.feature.user.domain.usecases.CheckProfileCompletionUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.CheckUserIsAdminUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
-    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase
+    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase,
+    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(WelcomeState())
     val state = _state.asStateFlow()
@@ -28,7 +30,8 @@ class WelcomeViewModel @Inject constructor(
             signInWithGoogleUseCase(idToken)
                 .onSuccess { _ ->
                     val isComplete = checkProfileCompletionUseCase().getOrDefault(false)
-                    _state.update { it.copy(status = WelcomeStatus.Success(isComplete)) }
+                    val isAdmin = checkUserIsAdminUseCase().getOrDefault(false)
+                    _state.update { it.copy(status = WelcomeStatus.Success(isComplete, isAdmin)) }
                 }
                 .onFailure { e ->
                     _state.update { it.copy(status = WelcomeStatus.Error(e.message ?: "Error al iniciar sesión")) }

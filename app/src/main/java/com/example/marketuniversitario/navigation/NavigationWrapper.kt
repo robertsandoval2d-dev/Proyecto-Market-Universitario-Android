@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
+import com.example.marketuniversitario.feature.admin.navigation.adminGraph
 import com.example.marketuniversitario.feature.auth.navigation.authGraph
 import com.example.marketuniversitario.feature.business.ui.edit_item.EditItemScreen
 import com.example.marketuniversitario.feature.business.ui.public_business.PublicBusinessRoute
@@ -27,6 +28,7 @@ fun NavigationWrapper(
         splashGraph(navHostController)
         authGraph(navHostController)
         mainGraph(navHostController)
+        adminGraph(navHostController)
 
         composable(
             route = "edit_item/{itemType}?productId={productId}",

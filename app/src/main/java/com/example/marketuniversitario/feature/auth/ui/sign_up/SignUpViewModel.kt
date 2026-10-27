@@ -6,6 +6,7 @@ import com.example.marketuniversitario.feature.auth.domain.exceptions.AuthExcept
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignInWithGoogleUseCase
 import com.example.marketuniversitario.feature.auth.domain.usecases.SignUpUseCase
 import com.example.marketuniversitario.feature.user.domain.usecases.CheckProfileCompletionUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.CheckUserIsAdminUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class SignUpViewModel @Inject constructor(
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
     private val signUpUseCase: SignUpUseCase,
-    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase
+    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase,
+    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignUpState())
@@ -56,7 +58,8 @@ class SignUpViewModel @Inject constructor(
             signUpUseCase.invoke(email, password)
                 .onSuccess { session ->
                     val isComplete = checkProfileCompletionUseCase().getOrDefault(false)
-                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified, isComplete)) }
+                    val isAdmin = checkUserIsAdminUseCase().getOrDefault(false)
+                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified, isComplete, isAdmin)) }
                 }
                 .onFailure { error ->
                     _state.update {
@@ -77,7 +80,8 @@ class SignUpViewModel @Inject constructor(
             signInWithGoogleUseCase(idToken)
                 .onSuccess { session ->
                     val isComplete = checkProfileCompletionUseCase().getOrDefault(false)
-                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified, isComplete)) }
+                    val isAdmin = checkUserIsAdminUseCase().getOrDefault(false)
+                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified, isComplete, isAdmin)) }
                 }
                 .onFailure { e ->
                     _state.update {

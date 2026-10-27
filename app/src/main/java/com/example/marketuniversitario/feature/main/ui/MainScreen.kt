@@ -107,6 +107,7 @@ fun MainScreen(
                 onNavigateToEditProfile = { bottomNavController.navigate("edit_profile") },
                 onNavigateToPreferences = { bottomNavController.navigate("preferences") },
                 onNavigateToTerms = { bottomNavController.navigate("terms") },
+                onNavigateToAdminManagement = { rootNavController.navigate("admin_management") },
                 onLogoutSuccess = { rootNavController.navigate("welcome") { popUpTo(0) } }
             )
 

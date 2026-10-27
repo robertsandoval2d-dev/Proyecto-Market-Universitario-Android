@@ -47,7 +47,7 @@ import java.util.Locale
 @Composable
 fun ProfileCompletionRoute(
     viewModel: ProfileCompletionViewModel = hiltViewModel(),
-    onNavigateHome: () -> Unit,
+    onNavigateHome: (Boolean) -> Unit,
     onNavigateToWelcome: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -68,7 +68,7 @@ fun ProfileCompletionRoute(
         }
         is ProfileCompletionStatus.Success -> {
             LaunchedEffect(Unit) {
-                onNavigateHome()
+                onNavigateHome(status.isAdmin)
             }
         }
         is ProfileCompletionStatus.LoggedOut -> {
