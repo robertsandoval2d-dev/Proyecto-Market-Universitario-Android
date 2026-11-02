@@ -22,8 +22,6 @@ import com.example.marketuniversitario.feature.business.navigation.businessGraph
 import com.example.marketuniversitario.feature.home.ui.home.HomeRoute
 import com.example.marketuniversitario.feature.main.navigation.BottomNavItem
 import com.example.marketuniversitario.feature.main.ui.util.BottomNavigationBar
-import com.example.marketuniversitario.feature.orders.ui.order_request.OrderRequestDialog
-import com.example.marketuniversitario.feature.orders.ui.order_request.OrderRequestDialogRoute
 import com.example.marketuniversitario.feature.orders.ui.orders.OrdersRoute
 import com.example.marketuniversitario.feature.user.navigation.profileGraph
 
@@ -40,18 +38,15 @@ fun MainScreen(
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val isHome = currentRoute == BottomNavItem.Home.route
+    val isHome = BottomNavItem.Home.matchesRoute(currentRoute)
 
     Scaffold(
         topBar = {
-            val isBusinessRoute = currentRoute == BottomNavItem.Business.route ||
-                    currentRoute?.startsWith("manage_item") == true
-
-            if (currentRoute != BottomNavItem.Home.route) {
+            if (!isHome) {
                 val title = when {
-                    isBusinessRoute -> "Mi Negocio"
-                    currentRoute == BottomNavItem.Orders.route -> "Mis Pedidos"
-                    currentRoute == BottomNavItem.Profile.route -> "Mi Perfil"
+                    BottomNavItem.Business.matchesRoute(currentRoute) -> "Mi Negocio"
+                    BottomNavItem.Orders.matchesRoute(currentRoute) -> "Mis Pedidos"
+                    BottomNavItem.Profile.matchesRoute(currentRoute) -> "Mi Perfil"
                     else -> ""
                 }
 
@@ -107,6 +102,7 @@ fun MainScreen(
                 onNavigateToEditProfile = { bottomNavController.navigate("edit_profile") },
                 onNavigateToPreferences = { bottomNavController.navigate("preferences") },
                 onNavigateToTerms = { bottomNavController.navigate("terms") },
+                onNavigateToUserReports = { bottomNavController.navigate("user_reports") },
                 onNavigateToAdminManagement = { rootNavController.navigate("admin_management") },
                 onLogoutSuccess = { rootNavController.navigate("welcome") { popUpTo(0) } }
             )

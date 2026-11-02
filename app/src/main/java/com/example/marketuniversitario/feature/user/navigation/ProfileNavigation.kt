@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import com.example.marketuniversitario.feature.user.ui.edit_profile.EditProfileRoute
 import com.example.marketuniversitario.feature.user.ui.preferences.PreferencesRoute
 import com.example.marketuniversitario.feature.user.ui.profile.ProfileRoute
+import com.example.marketuniversitario.feature.user.ui.reports.UserReportsRoute
 import com.example.marketuniversitario.feature.user.ui.terms.TermsRoute
 
 fun NavGraphBuilder.profileGraph(
@@ -13,6 +14,7 @@ fun NavGraphBuilder.profileGraph(
     onNavigateToEditProfile: () -> Unit,
     onNavigateToPreferences: () -> Unit,
     onNavigateToTerms: () -> Unit,
+    onNavigateToUserReports: () -> Unit,
     onNavigateToAdminManagement: () -> Unit,
     onLogoutSuccess: () -> Unit
 ) {
@@ -21,6 +23,7 @@ fun NavGraphBuilder.profileGraph(
             onNavigateToEditProfile = onNavigateToEditProfile,
             onNavigateToPreferences = onNavigateToPreferences,
             onNavigateToTerms = onNavigateToTerms,
+            onNavigateToUserReports = onNavigateToUserReports,
             onNavigateToAdminManagement = onNavigateToAdminManagement,
             onLogoutSuccess = onLogoutSuccess
         )
@@ -37,6 +40,11 @@ fun NavGraphBuilder.profileGraph(
     }
     composable("terms") {
         TermsRoute(
+            onNavigateBack = { navController.navigateUp() }
+        )
+    }
+    composable("user_reports") {
+        UserReportsRoute(
             onNavigateBack = { navController.navigateUp() }
         )
     }

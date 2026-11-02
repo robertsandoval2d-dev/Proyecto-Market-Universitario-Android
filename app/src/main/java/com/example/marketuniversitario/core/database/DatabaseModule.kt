@@ -6,6 +6,7 @@ import com.example.marketuniversitario.feature.business.data.datasources.Busines
 import com.example.marketuniversitario.feature.business.data.datasources.ProductDao
 import com.example.marketuniversitario.feature.orders.data.datasources.MessageDao
 import com.example.marketuniversitario.feature.orders.data.datasources.OrderDao
+import com.example.marketuniversitario.feature.reports.data.datasources.ReportDao
 import com.example.marketuniversitario.feature.reviews.data.datasources.ReviewDao
 import com.example.marketuniversitario.feature.user.data.datasources.UserDao
 import dagger.Module
@@ -57,6 +58,12 @@ object DatabaseModule {
     @Singleton
     fun provideReviewDao(appDatabase: AppDatabase): ReviewDao {
         return appDatabase.reviewDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideReportDao(appDatabase: AppDatabase): ReportDao {
+        return appDatabase.reportDao()
     }
 
     @Provides

@@ -22,11 +22,10 @@ import com.example.marketuniversitario.feature.admin.navigation.AdminBottomNavIt
 import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminDashboardScreen
 import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminModule2Screen
 import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminModule4Screen
-import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminReportsScreen
 import com.example.marketuniversitario.feature.admin.ui.util.AdminBottomNavigationBar
 
 @Composable
-fun AdminMainRoute( rootNavController: NavHostController) {
+fun AdminMainRoute(rootNavController: NavHostController) {
     AdminMainScreen(rootNavController = rootNavController)
 }
 
@@ -88,17 +87,12 @@ fun AdminMainScreen(
                 )
             }
 
-//            DashboardGraph(bottomNavController, rootNavController)
-//            SecondSectionGraph(bottomNavController)
-//            IncidentsGraph(bottomNavController)
-//            WAAZAAGraph(bottomNavController)
+            // DashboardGraph(bottomNavController, rootNavController)
+            // SecondSectionGraph(bottomNavController)
+            // IncidentsGraph(bottomNavController)
 
             composable(AdminBottomNavItem.Module2.route) {
                 AdminModule2Screen()
-            }
-
-            composable(AdminBottomNavItem.Reports.route) {
-                AdminReportsScreen()
             }
 
             composable(AdminBottomNavItem.Module4.route) {

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,6 +40,7 @@ fun ProfileRoute(
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToTerms: () -> Unit = {},
+    onNavigateToUserReports: () -> Unit = {},
     onNavigateToAdminManagement: () -> Unit = {},
     onLogoutSuccess: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
@@ -58,6 +60,7 @@ fun ProfileRoute(
         onNavigateToEditProfile = onNavigateToEditProfile,
         onNavigateToPreferences = onNavigateToPreferences,
         onNavigateToTerms = onNavigateToTerms,
+        onNavigateToUserReports = onNavigateToUserReports,
         onNavigateToAdminManagement = onNavigateToAdminManagement
     )
 }
@@ -69,6 +72,7 @@ fun ProfileScreen(
     onNavigateToEditProfile: () -> Unit,
     onNavigateToPreferences: () -> Unit,
     onNavigateToTerms: () -> Unit,
+    onNavigateToUserReports: () -> Unit,
     onNavigateToAdminManagement: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
@@ -131,6 +135,11 @@ fun ProfileScreen(
                     icon = Icons.Default.Info,
                     title = "Términos y Condiciones",
                     onClick = onNavigateToTerms
+                )
+                ProfileOptionItem(
+                    icon = Icons.Default.Warning,
+                    title = "Mis Incidencias y Reportes",
+                    onClick = onNavigateToUserReports
                 )
                 if (state.user.isAdmin) {
                     ProfileOptionItem(

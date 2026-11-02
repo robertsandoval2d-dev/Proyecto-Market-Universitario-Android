@@ -10,6 +10,8 @@ import com.example.marketuniversitario.feature.orders.data.datasources.MessageDa
 import com.example.marketuniversitario.feature.orders.data.datasources.OrderDao
 import com.example.marketuniversitario.feature.orders.data.models.MessageRoomEntity
 import com.example.marketuniversitario.feature.orders.data.models.OrderRoomEntity
+import com.example.marketuniversitario.feature.reports.data.datasources.ReportDao
+import com.example.marketuniversitario.feature.reports.data.models.ReportRoomEntity
 import com.example.marketuniversitario.feature.reviews.data.datasources.ReviewDao
 import com.example.marketuniversitario.feature.reviews.data.models.ReviewRoomEntity
 import com.example.marketuniversitario.feature.user.data.datasources.UserDao
@@ -22,9 +24,10 @@ import com.example.marketuniversitario.feature.user.data.models.UserRoomEntity
         UserRoomEntity::class,
         OrderRoomEntity::class,
         ReviewRoomEntity::class,
-        MessageRoomEntity::class
+        MessageRoomEntity::class,
+        ReportRoomEntity::class
     ], 
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -34,4 +37,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun orderDao(): OrderDao
     abstract fun reviewDao(): ReviewDao
     abstract fun messageDao(): MessageDao
+    abstract fun reportDao(): ReportDao
 }

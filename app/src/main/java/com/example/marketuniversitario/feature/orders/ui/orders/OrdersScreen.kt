@@ -54,6 +54,7 @@ fun OrdersScreen(
     onNavigateToChat: (String) -> Unit = {}
 ) {
     var selectedOrderForRating by remember { mutableStateOf<Order?>(null) }
+    var selectedOrderForReport by remember { mutableStateOf<Order?>(null) }
 
     Column(
         modifier = Modifier
@@ -124,7 +125,8 @@ fun OrdersScreen(
                         order = order,
                         onEvent = onEvent,
                         onNavigateToChat = onNavigateToChat,
-                        onRateClick = { selectedOrderForRating = it }
+                        onRateClick = { selectedOrderForRating = it },
+                        onReportClick = { selectedOrderForReport = it }
                     )
                 }
             }
@@ -142,6 +144,17 @@ fun OrdersScreen(
             onSuccess = { selectedOrderForRating = null }
         )
     }
+
+    selectedOrderForReport?.let { order ->
+        com.example.marketuniversitario.feature.reports.ui.report.ReportBottomSheetRoute(
+            orderId = order.id,
+            businessId = order.businessId,
+            studentId = state.currentUserId,
+            orderStatusAtReport = order.status.name,
+            onDismiss = { selectedOrderForReport = null },
+            onSuccess = { selectedOrderForReport = null }
+        )
+    }
 }
 
 @Composable
@@ -149,7 +162,8 @@ fun OrderCard(
     order: Order,
     onEvent: (OrdersEvent) -> Unit,
     onNavigateToChat: (String) -> Unit,
-    onRateClick: (Order) -> Unit
+    onRateClick: (Order) -> Unit,
+    onReportClick: (Order) -> Unit
 ) {
     var showAcceptDialog by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
@@ -402,23 +416,39 @@ fun OrderCard(
                 }
             } else {
                 // Acciones para Comprador (Cliente)
-                if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP) {
+                if (order.status != OrderStatus.PENDING) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { onNavigateToChat(order.id) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.fillMaxWidth().height(40.dp)
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Chat con el Vendedor")
-                    }
-                } else if (order.status == OrderStatus.COMPLETED) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { onRateClick(order) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.fillMaxWidth().height(40.dp)
-                    ) {
-                        Text("Calificación de Producto")
+                        if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP) {
+                            Button(
+                                onClick = { onNavigateToChat(order.id) },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                modifier = Modifier.fillMaxWidth().height(40.dp)
+                            ) {
+                                Text("Chat con el Vendedor")
+                            }
+                        } else if (order.status == OrderStatus.COMPLETED) {
+                            Button(
+                                onClick = { onRateClick(order) },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                modifier = Modifier.fillMaxWidth().height(40.dp)
+                            ) {
+                                Text("Calificación de Producto")
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = { onReportClick(order) },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            modifier = Modifier.fillMaxWidth().height(40.dp)
+                        ) {
+                            Text("Reportar Incidencia")
+                        }
                     }
                 }
             }
