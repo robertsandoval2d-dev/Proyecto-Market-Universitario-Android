@@ -14,6 +14,7 @@ data class BusinessRoomEntity(
     val categories: String, // Comma-separated list of categories
     val bannerUrl: String?,
     val isActive: Boolean,
+    val strikes: Int = 0,
     val rating: Double,
     val totalReviews: Int,
     val createdAt: Long,
@@ -28,6 +29,7 @@ fun Business.toRoomEntity(isSynced: Boolean = false) = BusinessRoomEntity(
     categories = this.categories.joinToString(","),
     bannerUrl = this.bannerUrl,
     isActive = this.isActive,
+    strikes = this.strikes,
     rating = this.rating,
     totalReviews = this.totalReviews,
     createdAt = this.createdAt,
@@ -42,6 +44,7 @@ fun BusinessRoomEntity.toDomain() = Business(
     categories = if (this.categories.isBlank()) emptyList() else this.categories.split(","),
     bannerUrl = this.bannerUrl,
     isActive = this.isActive,
+    strikes = this.strikes,
     rating = this.rating,
     totalReviews = this.totalReviews,
     createdAt = this.createdAt

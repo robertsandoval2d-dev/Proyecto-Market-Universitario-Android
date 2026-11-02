@@ -9,7 +9,9 @@ interface OrderRepository {
     suspend fun getOrders(): Result<List<Order>>
     fun getOrder(orderId: String): Flow<Order?>
     suspend fun getOrderById(orderId: String): Order?
+    suspend fun getOrderRemote(orderId: String): Result<Order?>
     fun getMessagesForOrder(orderId: String): Flow<List<Message>>
+    fun getAdminMessagesForOrder(orderId: String): Flow<List<Message>>
 
     suspend fun createOrder(order: Order): Result<Order>
 

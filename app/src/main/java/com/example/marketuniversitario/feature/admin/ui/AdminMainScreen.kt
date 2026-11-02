@@ -23,6 +23,7 @@ import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminDash
 import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminModule2Screen
 import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminModule4Screen
 import com.example.marketuniversitario.feature.admin.ui.util.AdminBottomNavigationBar
+import com.example.marketuniversitario.feature.reports.ui.admin_reports.AdminReportsRoute
 
 @Composable
 fun AdminMainRoute(rootNavController: NavHostController) {
@@ -93,6 +94,14 @@ fun AdminMainScreen(
 
             composable(AdminBottomNavItem.Module2.route) {
                 AdminModule2Screen()
+            }
+
+            composable(AdminBottomNavItem.Reports.route) {
+                AdminReportsRoute(
+                    onNavigateToChat = { orderId ->
+                        rootNavController.navigate("admin_chat/$orderId")
+                    }
+                )
             }
 
             composable(AdminBottomNavItem.Module4.route) {

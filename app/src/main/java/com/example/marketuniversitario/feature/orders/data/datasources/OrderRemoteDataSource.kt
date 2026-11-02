@@ -96,6 +96,11 @@ class OrderRemoteDataSource @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
+    suspend fun getOrderById(orderId: String): OrderEntity? {
+        val snapshot = ordersCollection.document(orderId).get().await()
+        return snapshot.toObject(OrderEntity::class.java)
+    }
+
     fun getOrderFlow(orderId: String): Flow<OrderEntity?> = callbackFlow {
         val subscription = ordersCollection.document(orderId)
             .addSnapshotListener { snapshot, error ->

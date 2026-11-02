@@ -61,6 +61,21 @@ fun NavigationWrapper(
         }
 
         composable(
+            route = "admin_chat/{orderId}",
+            arguments = listOf(
+                navArgument("orderId") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId").orEmpty()
+            com.example.marketuniversitario.feature.orders.ui.admin_chat.AdminOrderChatRoute(
+                orderId = orderId,
+                onBackClick = { navHostController.navigateUp() }
+            )
+        }
+
+        composable(
             route = "view_business/{businessId}",
             arguments = listOf(
                 navArgument("businessId") {

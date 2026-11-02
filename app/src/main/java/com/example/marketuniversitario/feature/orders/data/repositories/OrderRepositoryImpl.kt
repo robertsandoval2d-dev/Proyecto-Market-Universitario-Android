@@ -140,6 +140,15 @@ class OrderRepositoryImpl @Inject constructor(
         return localDataSource.getOrderById(orderId)?.toDomain()
     }
 
+    override suspend fun getOrderRemote(orderId: String): Result<Order?> {
+        return try {
+            val remoteEntity = remoteDataSource.getOrderById(orderId)
+            Result.success(remoteEntity?.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override fun getMessagesForOrder(orderId: String): Flow<List<Message>> {
         // Sincronizar mensajes en segundo plano si hay conexión (respetando isSynced)
         CoroutineScope(Dispatchers.IO).launch {
@@ -157,6 +166,12 @@ class OrderRepositoryImpl @Inject constructor(
         }
         // Leer siempre desde SQLite local (Offline-first)
         return messageLocalDataSource.getMessagesForOrder(orderId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override fun getAdminMessagesForOrder(orderId: String): Flow<List<Message>> {
+        return messageRemoteDataSource.getMessages(orderId).map { entities ->
             entities.map { it.toDomain() }
         }
     }

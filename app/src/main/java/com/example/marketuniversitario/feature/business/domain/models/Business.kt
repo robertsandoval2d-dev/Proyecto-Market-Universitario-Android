@@ -8,6 +8,7 @@ data class Business(
     val categories: List<String> = emptyList(),
     val bannerUrl: String? = null,
     val isActive: Boolean = true,
+    val strikes: Int = 0,
 
     // Campos preparados para IA (Métricas de confianza del negocio)
     val rating: Double = 0.0,

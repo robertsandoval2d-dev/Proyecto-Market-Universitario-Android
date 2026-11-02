@@ -85,6 +85,15 @@ class UserRepositoryImpl @Inject constructor(
         return localDataSource.getUserStreamById(userId).map { it?.toDomain() }
     }
 
+    override suspend fun getUserRemote(userId: String): Result<User?> {
+        return try {
+            val remoteEntity = remoteDataSource.getUser(userId)
+            Result.success(remoteEntity?.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?): Result<Unit> {
         return try {
             val localUser = localDataSource.getUserById(userId)

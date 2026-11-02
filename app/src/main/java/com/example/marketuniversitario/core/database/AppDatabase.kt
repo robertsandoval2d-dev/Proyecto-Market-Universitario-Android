@@ -27,7 +27,7 @@ import com.example.marketuniversitario.feature.user.data.models.UserRoomEntity
         MessageRoomEntity::class,
         ReportRoomEntity::class
     ], 
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
