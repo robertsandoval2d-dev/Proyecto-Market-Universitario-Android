@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.firebase.appcheck.debug)
     implementation(libs.google.fonts)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.exifinterface)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
     implementation("androidx.compose.material:material-icons-extended")
@@ -98,4 +99,10 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    //ONNX Runtime
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:latest.release")
+
 }

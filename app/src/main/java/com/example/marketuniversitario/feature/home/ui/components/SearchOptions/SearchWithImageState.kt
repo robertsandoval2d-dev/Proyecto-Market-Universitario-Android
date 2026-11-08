@@ -7,8 +7,7 @@ sealed interface SearchWithImageStatus {
     object Idle : SearchWithImageStatus
     object Analyzing : SearchWithImageStatus
     data class Success(
-        val detectedTags: List<String>,
-        val matchedProducts: List<FeedProduct>
+        val detectedTags: List<String>
     ) : SearchWithImageStatus
     data class Error(val message: String) : SearchWithImageStatus
 }

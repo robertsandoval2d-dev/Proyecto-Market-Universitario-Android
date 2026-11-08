@@ -70,7 +70,6 @@ fun SearchWithImageBottomSheet(
     sheetState: SheetState,
     onDismiss: () -> Unit,
     onTagSelected: (String) -> Unit = {},
-    onProductClick: (FeedProduct) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -298,79 +297,27 @@ fun SearchWithImageBottomSheet(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            status.detectedTags.forEach { tag ->
-                                FilterChip(
-                                    selected = false,
-                                    onClick = { onTagSelected(tag) },
-                                    label = { Text(text = tag) },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Search,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
+                            if (status.detectedTags.isNotEmpty()){
+                                status.detectedTags.forEach { tag ->
+                                    FilterChip(
+                                        selected = false,
+                                        onClick = { onTagSelected(tag) },
+                                        label = { Text(text = tag) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.Default.Search,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = "No se encontraron etiquetas",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        if (status.matchedProducts.isNotEmpty()) {
-                            Text(
-                                text = "Productos coincidentes (${status.matchedProducts.size}):",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(2),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.height(220.dp)
-                            ) {
-                                items(
-                                    items = status.matchedProducts,
-                                    key = { product -> if (product.id.isNotBlank()) product.id else product.hashCode().toString() }
-                                ) { product ->
-                                    ProductCard(
-                                        product = product,
-                                        onClick = { onProductClick(product) }
-                                    )
-                                }
-                            }
-                        } else {
-                            // Estado Vacío (Empty State) si no hay productos que coincidan con las etiquetas
-                            Surface(
-                                shape = RoundedCornerShape(14.dp),
-                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(20.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.SearchOff,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                        modifier = Modifier.size(36.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "No encontramos productos con estas características",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp,
-                                        textAlign = TextAlign.Center
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Prueba con otra foto o busca por nombre en la barra principal",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
                             }
                         }
                     }
