@@ -3,6 +3,9 @@ package com.example.marketuniversitario.feature.business.data.datasources
 import com.example.marketuniversitario.feature.business.data.models.BusinessEntity
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.snapshots
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
@@ -46,5 +49,13 @@ class BusinessRemoteDataSource @Inject constructor(
             .document(businessEntity.id)
             .set(businessEntity)
             .await()
+    }
+
+    fun getAllBusinesses(): Flow<List<BusinessEntity>> {
+        return firestore.collection("businesses")
+            .snapshots()
+            .map { snapshot ->
+                snapshot.documents.mapNotNull { it.toObject(BusinessEntity::class.java) }
+            }
     }
 }

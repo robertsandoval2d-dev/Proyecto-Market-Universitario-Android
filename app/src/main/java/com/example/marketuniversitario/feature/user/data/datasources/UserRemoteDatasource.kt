@@ -64,4 +64,12 @@ class UserRemoteDataSource @Inject constructor(
             .set(userEntity)
             .await()
     }
+
+    fun getAllUsers(): Flow<List<UserEntity>> {
+        return firestore.collection("users")
+            .snapshots()
+            .map { snapshot ->
+                snapshot.documents.mapNotNull { it.toObject(UserEntity::class.java) }
+            }
+    }
 }

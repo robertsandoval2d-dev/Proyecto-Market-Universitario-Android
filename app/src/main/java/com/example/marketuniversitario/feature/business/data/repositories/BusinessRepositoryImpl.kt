@@ -9,12 +9,15 @@ import androidx.work.WorkManager
 import com.example.marketuniversitario.feature.business.data.datasources.BusinessLocalDataSource
 import com.example.marketuniversitario.feature.business.data.datasources.BusinessRemoteDataSource
 import com.example.marketuniversitario.feature.business.data.models.toDomain
+import com.example.marketuniversitario.feature.business.data.models.toEntity
 import com.example.marketuniversitario.feature.business.data.models.toRoomEntity
 import com.example.marketuniversitario.feature.business.data.workers.SyncBusinessWorker
 import com.example.marketuniversitario.feature.business.domain.models.Business
 import com.example.marketuniversitario.feature.business.domain.models.Product
 import com.example.marketuniversitario.feature.business.domain.repositories.BusinessRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -111,6 +114,27 @@ class BusinessRepositoryImpl @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun updateBusinessRemote(business: Business): Result<Unit> {
+        return try {
+            // Guardado instantáneo a Firestore para reflejarse en los Dashboards
+            remoteDataSource.updateBusiness(business.toEntity())
+            
+            // Sincronizamos también la BD local para mantener coherencia
+            val roomEntity = business.toRoomEntity(isSynced = true)
+            localDataSource.saveBusiness(roomEntity)
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun getAllBusinesses(): Flow<List<Business>> {
+        return remoteDataSource.getAllBusinesses().map { list ->
+            list.map { it.toDomain() }
         }
     }
 }

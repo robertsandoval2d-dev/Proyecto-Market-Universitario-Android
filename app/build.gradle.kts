@@ -105,4 +105,6 @@ dependencies {
     //ONNX Runtime
     implementation("com.microsoft.onnxruntime:onnxruntime-android:latest.release")
 
+    // Charts
+    implementation("com.github.tehras:charts:0.2.4-alpha")
 }

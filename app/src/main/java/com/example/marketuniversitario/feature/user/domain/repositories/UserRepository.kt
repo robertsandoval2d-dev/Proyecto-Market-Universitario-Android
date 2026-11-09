@@ -11,4 +11,5 @@ interface UserRepository {
     suspend fun updateUserBusinessStatus(userId: String, hasBusiness: Boolean, businessId: String?): Result<Unit>
     suspend fun updateUserProfile(user: User): Result<Unit>
     suspend fun addRecentSearch(userId: String, searchQuery: String): Result<Unit>
+    fun getAllUsers(): Flow<List<User>>
 }

@@ -168,4 +168,10 @@ class UserRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override fun getAllUsers(): Flow<List<User>> {
+        return remoteDataSource.getAllUsers().map { list ->
+            list.map { it.toDomain() }
+        }
+    }
 }

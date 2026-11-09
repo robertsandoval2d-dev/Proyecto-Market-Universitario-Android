@@ -27,6 +27,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,37 +41,38 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun AdminDashboardScreen(
-    onSwitchToUserMode: () -> Unit
+    onSwitchToUserMode: () -> Unit,
+    onNavigateToUsers: () -> Unit = {},
+    onNavigateToBusinesses: () -> Unit = {},
+    onNavigateToProducts: () -> Unit = {},
+    onNavigateToReports: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Card de bienvenida Admin
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
-            ),
-            modifier = Modifier.fillMaxWidth()
+        // Banner de bienvenida Admin (Ocupa todo el ancho)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
         ) {
             Row(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(top = 48.dp, bottom = 24.dp, start = 20.dp, end = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondary),
+                        .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.AdminPanelSettings,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondary,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -81,22 +84,22 @@ fun AdminDashboardScreen(
                         text = "Bienvenido, Administrador",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Acceso a la gestión del sistema",
                         fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Módulos de Gestión",
+        // Resto del contenido con el padding regular
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = "Módulos de Gestión",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
             color = MaterialTheme.colorScheme.primary,
@@ -112,12 +115,14 @@ fun AdminDashboardScreen(
                 title = "Usuarios",
                 subtitle = "Gestión de cuentas",
                 icon = Icons.Default.Group,
+                onClick = onNavigateToUsers,
                 modifier = Modifier.weight(1f)
             )
             AdminModuleCard(
                 title = "Negocios",
                 subtitle = "Solicitudes y tiendas",
                 icon = Icons.Default.Storefront,
+                onClick = onNavigateToBusinesses,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -132,35 +137,38 @@ fun AdminDashboardScreen(
                 title = "Productos",
                 subtitle = "Moderación de ítems",
                 icon = Icons.Default.Inventory,
+                onClick = onNavigateToProducts,
                 modifier = Modifier.weight(1f)
             )
             AdminModuleCard(
                 title = "Reportes",
                 subtitle = "Alertas e incidencias",
                 icon = Icons.Default.Report,
+                onClick = onNavigateToReports,
                 modifier = Modifier.weight(1f)
             )
         }
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Botón de cambio rápido a Modo Usuario
-        OutlinedButton(
-            onClick = onSwitchToUserMode,
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Storefront,
-                contentDescription = null
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Cambiar a Modo Usuario",
-                fontWeight = FontWeight.SemiBold
-            )
+            // Botón de cambio rápido a Modo Usuario
+            OutlinedButton(
+                onClick = onSwitchToUserMode,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Storefront,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Cambiar a Modo Usuario",
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }
@@ -170,9 +178,11 @@ private fun AdminModuleCard(
     title: String,
     subtitle: String,
     icon: ImageVector,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant

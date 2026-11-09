@@ -84,6 +84,18 @@ fun AdminMainScreen(
                         rootNavController.navigate("inicio") {
                             popUpTo("role_selection") { inclusive = true }
                         }
+                    },
+                    onNavigateToUsers = {
+                        rootNavController.navigate("analytics_users")
+                    },
+                    onNavigateToBusinesses = {
+                        rootNavController.navigate("analytics_businesses")
+                    },
+                    onNavigateToProducts = {
+                        rootNavController.navigate("analytics_products")
+                    },
+                    onNavigateToReports = {
+                        rootNavController.navigate("analytics_reports")
                     }
                 )
             }

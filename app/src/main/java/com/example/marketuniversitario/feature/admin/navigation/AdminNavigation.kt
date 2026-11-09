@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.marketuniversitario.feature.admin.ui.AdminMainRoute
 import com.example.marketuniversitario.feature.admin.ui.role_selection.RoleSelectionRoute
+import com.example.marketuniversitario.feature.analytics.navigation.analyticsGraph
 
 fun NavGraphBuilder.adminGraph(navHostController: NavHostController) {
     composable("role_selection") {
@@ -23,4 +24,6 @@ fun NavGraphBuilder.adminGraph(navHostController: NavHostController) {
     composable("admin_management") {
         AdminMainRoute(rootNavController = navHostController)
     }
+
+    analyticsGraph(navHostController)
 }
