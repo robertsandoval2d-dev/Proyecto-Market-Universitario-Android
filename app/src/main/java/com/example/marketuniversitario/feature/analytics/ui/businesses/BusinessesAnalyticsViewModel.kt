@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,14 +50,33 @@ class BusinessesAnalyticsViewModel @Inject constructor(
                 val pieChartData = if (pieSlices.isNotEmpty()) PieChartData(pieSlices) else PieChartData(listOf(PieChartData.Slice(1f, Color.LightGray)))
                 val finalPieLabels = if (pieSlices.isNotEmpty()) pieLabels else listOf("Sin Datos")
 
-                // BarChart by TotalReviews (Top 5)
-                val top5Reviewed = businesses.sortedByDescending { it.totalReviews }.take(5)
+                // BarChart by Weighted Rating (Top 5 - IMDb Formula)
+                val m = 5.0 // Umbral mínimo de reseñas de confianza
+                
+                // Filtramos para considerar solo negocios que tengan al menos 1 reseña
+                val businessesWithReviews = businesses.filter { it.totalReviews > 0 }
+                
+                val C = if (businessesWithReviews.isNotEmpty()) businessesWithReviews.map { it.rating }.average() else 0.0
+
+                val top5Rated = businessesWithReviews.map { business ->
+                    val v = business.totalReviews.toDouble()
+                    val R = business.rating
+                    val weightedScore = if (v + m > 0) ((v * R) + (m * C)) / (v + m) else 0.0
+                    Pair(business, weightedScore)
+                }.sortedByDescending { it.second }.take(5)
+
                 val barLabels = mutableListOf<String>()
-                val bars = top5Reviewed.mapIndexed { index, business ->
-                    val labelText = business.name.ifBlank { "Negocio ${index+1}" }
+                val bars = top5Rated.mapIndexed { index, pair ->
+                    val business = pair.first
+                    val weightedScore = pair.second
+                    
+                    // Mostramos el Puntaje Justo (Ponderado) directamente en la etiqueta
+                    val labelText = "${business.name.ifBlank { "Negocio ${index+1}" }} (${String.format(
+                        Locale.US, "%.2f", weightedScore)} ⭐)"
                     barLabels.add(labelText)
+                    
                     BarChartData.Bar(
-                        value = business.totalReviews.toFloat(),
+                        value = weightedScore.toFloat(), // El gráfico se dibuja en base al puntaje ponderado
                         color = chartColorPalette[(index + 4) % chartColorPalette.size],
                         label = labelText
                     )

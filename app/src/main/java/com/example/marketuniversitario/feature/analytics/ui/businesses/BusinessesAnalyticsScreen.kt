@@ -100,7 +100,7 @@ private fun BusinessesAnalyticsContent(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Top 5 Negocios por Reseñas",
+                    text = "Top 5 Negocios Mejor Valorados",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(bottom = 16.dp)

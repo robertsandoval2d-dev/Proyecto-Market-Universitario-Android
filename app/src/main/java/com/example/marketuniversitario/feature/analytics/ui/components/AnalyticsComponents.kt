@@ -55,6 +55,7 @@ import com.github.tehras.charts.piechart.renderer.SliceDrawer
 import kotlin.math.cos
 import kotlin.math.sin
 import androidx.compose.ui.graphics.Color
+import java.util.Locale
 
 val chartColorPalette = listOf(
     Color(0xFF1976D2), // Blue
@@ -231,7 +232,7 @@ fun DashboardBarChart(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Valor: ${bar.value.toInt()}",
+                            text = "Valor: ${String.format("%.2f", bar.value)}",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }

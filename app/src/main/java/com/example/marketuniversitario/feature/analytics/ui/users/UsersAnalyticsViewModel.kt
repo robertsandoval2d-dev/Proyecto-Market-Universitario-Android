@@ -54,8 +54,11 @@ class UsersAnalyticsViewModel @Inject constructor(
                     it.primaryIntent?.takeIf { i -> i.isNotEmpty() } ?: "No Especificado" 
                 }.eachCount()
                 
+                // Ordenar de mayor a menor cantidad
+                val sortedIntents = intentGroups.entries.sortedByDescending { it.value }
+                
                 val barLabels = mutableListOf<String>()
-                val bars = intentGroups.entries.mapIndexed { index, entry ->
+                val bars = sortedIntents.mapIndexed { index, entry ->
                     barLabels.add(entry.key)
                     BarChartData.Bar(
                         value = entry.value.toFloat(),
