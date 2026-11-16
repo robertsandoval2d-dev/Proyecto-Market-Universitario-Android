@@ -102,9 +102,12 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    //ONNX Runtime
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:latest.release")
-
     // Charts
     implementation("com.github.tehras:charts:0.2.4-alpha")
+
+    //Retrofit & OkHttp
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 }

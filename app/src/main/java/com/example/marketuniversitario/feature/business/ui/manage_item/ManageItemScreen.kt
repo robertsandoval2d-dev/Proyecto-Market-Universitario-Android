@@ -158,6 +158,7 @@ fun ManageItemContent(
                     if (filteredItems.isEmpty()) {
                         Text(
                             text = "No se encontraron elementos.",
+                            style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.align(Alignment.Center)
                         )

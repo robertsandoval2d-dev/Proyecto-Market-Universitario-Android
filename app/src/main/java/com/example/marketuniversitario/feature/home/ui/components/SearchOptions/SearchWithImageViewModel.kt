@@ -2,6 +2,7 @@ package com.example.marketuniversitario.feature.home.ui.components.SearchOptions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.marketuniversitario.core.network.util.NetworkResult
 import com.example.marketuniversitario.feature.home.domain.usecases.GetFeedProductsUseCase
 import com.example.marketuniversitario.feature.home.domain.usecases.GetTagsFromImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,19 +51,19 @@ class SearchWithImageViewModel @Inject constructor(
         val uri = _state.value.selectedImageUri ?: return
         viewModelScope.launch {
             _state.update { it.copy(status = SearchWithImageStatus.Analyzing) }
-            try {
-                val tags = getTagsFromImageUseCase(uri.toString())
-
-                _state.update {
-                        it.copy(
-                            status = SearchWithImageStatus.Success(
-                                detectedTags = tags
-                            )
-                        )
+            when (val result = getTagsFromImageUseCase(uri)) {
+                is NetworkResult.Success -> {
+                    _state.update {
+                        it.copy(status = SearchWithImageStatus.Success(detectedTags = result.data))
+                    }
                 }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(status = SearchWithImageStatus.Error(e.message ?: "Error al analizar la imagen"))
+                is NetworkResult.Error -> {
+                    _state.update {
+                        it.copy(status = SearchWithImageStatus.Error(result.message))
+                    }
+                }
+                is NetworkResult.Loading -> {
+                    _state.update { it.copy(status = SearchWithImageStatus.Analyzing) }
                 }
             }
         }

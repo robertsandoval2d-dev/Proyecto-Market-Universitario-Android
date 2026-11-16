@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -133,15 +134,46 @@ fun HomeScreen(
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
 
                 status is HomeStatus.Error ->
-                    Text(text = status.message)
-                status is HomeStatus.Success && state.products.isEmpty() ->
                     Text(
-                        text = if (state.activeQuery != null)
-                            "No encontramos resultados para “${state.activeQuery}”"
-                        else
-                            "No encontramos productos",
-                        modifier = Modifier.align(Alignment.Center)
+                        text = status.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp)
                     )
+                status is HomeStatus.Success && state.products.isEmpty() -> {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(56.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = if (state.activeQuery != null)
+                                "No encontramos resultados para “${state.activeQuery}”"
+                            else
+                                "No encontramos productos",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Intenta buscar con otros términos o categorías",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
                 else -> HomeContent(
                     title = state.activeQuery?.let { "Resultados para “$it”" } ?: "Productos recomendados",
                     products = state.products,

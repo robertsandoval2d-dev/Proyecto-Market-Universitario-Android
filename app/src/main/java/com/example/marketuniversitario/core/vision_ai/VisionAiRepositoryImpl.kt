@@ -1,13 +1,16 @@
 package com.example.marketuniversitario.core.vision_ai
 
-import com.example.marketuniversitario.core.vision_ai.onnx.OnnxVisionService
+import android.net.Uri
+import com.example.marketuniversitario.core.network.util.NetworkResult
+import com.example.marketuniversitario.core.vision_ai.remote.CloudRunVisionService
 import com.example.marketuniversitario.feature.home.domain.repository.VisionAiRepository
 import javax.inject.Inject
 
 class VisionAiRepositoryImpl @Inject constructor(
-    private val onnxService: OnnxVisionService
+    private val cloudRunService: CloudRunVisionService
 ) : VisionAiRepository {
 
-    override suspend fun extractTagsFromImage(imageUriString: String): List<String> =
-        onnxService.extractTagsFromImage(imageUriString)
+    override suspend fun extractTagsFromImage(imageUri: Uri): NetworkResult<List<String>> {
+        return cloudRunService.extractTagsFromImage(imageUri)
+    }
 }
