@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.github.tehras.charts.bar.BarChart
 import com.github.tehras.charts.bar.BarChartData
 import com.github.tehras.charts.bar.renderer.label.SimpleValueDrawer
+import com.github.tehras.charts.bar.renderer.xaxis.SimpleXAxisDrawer
+import com.github.tehras.charts.bar.renderer.yaxis.SimpleYAxisDrawer
 import com.github.tehras.charts.piechart.PieChart
 import com.github.tehras.charts.piechart.PieChartData
 import android.graphics.Paint
@@ -180,7 +182,7 @@ fun DashboardBarChart(
                 .padding(end = 16.dp)
                 .pointerInput(fullLabelsBarChartData) {
                     detectTapGestures(
-                        onPress = { selectedBar = null }, // Se oculta al tocar cualquier otro lado o scrollear
+                        onPress = { selectedBar = null },
                         onTap = { offset ->
                             val barSectionWidth = size.width / fullLabelsBarChartData.bars.size
                             if (barSectionWidth > 0) {
@@ -193,8 +195,16 @@ fun DashboardBarChart(
                         }
                     )
                 },
+            xAxisDrawer = SimpleXAxisDrawer(
+                axisLineColor = MaterialTheme.colorScheme.onSurface
+            ),
+            yAxisDrawer = SimpleYAxisDrawer(
+                axisLineColor = MaterialTheme.colorScheme.onSurface,
+                labelTextColor = MaterialTheme.colorScheme.onSurface
+            ),
             labelDrawer = SimpleValueDrawer(
-                drawLocation = SimpleValueDrawer.DrawLocation.XAxis
+                drawLocation = SimpleValueDrawer.DrawLocation.XAxis,
+                labelTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
         
