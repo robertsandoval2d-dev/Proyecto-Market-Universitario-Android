@@ -3,27 +3,30 @@ package com.example.marketuniversitario.feature.splash.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.repositories.AuthRepository
+import com.example.marketuniversitario.feature.auth.domain.usecases.LogoutUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.AccountStatusResult
+import com.example.marketuniversitario.feature.user.domain.usecases.CheckProfileCompletionUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.CheckUserIsAdminUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.ValidateUserAccountStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.marketuniversitario.feature.user.domain.usecases.CheckProfileCompletionUseCase
-import com.example.marketuniversitario.feature.user.domain.usecases.CheckUserIsAdminUseCase
 
 @HiltViewModel
 class SplashViewModel @Inject constructor (
     private val authRepository: AuthRepository,
+    private val logoutUseCase: LogoutUseCase,
     private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase,
-    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase
+    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase,
+    private val validateUserAccountStatusUseCase: ValidateUserAccountStatusUseCase
 ) : ViewModel() {
     private val _destination = MutableStateFlow<String?>(null)
     val destination = _destination.asStateFlow()
 
     init {
-        //PRUEBAS
-//        authRepository.logout()
         viewModelScope.launch {
             delay(2000)
             _destination.value = resolveStartDestination()
@@ -36,6 +39,13 @@ class SplashViewModel @Inject constructor (
         authRepository.reloadUser()
 
         if (!authRepository.isEmailVerified()) return "login"
+
+        val userId = authRepository.getCurrentUserId().orEmpty()
+        val accountStatusResult = validateUserAccountStatusUseCase(userId)
+        if (accountStatusResult is AccountStatusResult.Blocked) {
+            logoutUseCase()
+            return "welcome"
+        }
 
         val isProfileComplete = checkProfileCompletionUseCase().getOrDefault(false)
         if (!isProfileComplete) return "profile_completion"

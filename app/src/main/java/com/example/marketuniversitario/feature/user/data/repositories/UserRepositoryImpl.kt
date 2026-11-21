@@ -13,6 +13,7 @@ import com.example.marketuniversitario.feature.user.data.datasources.UserRemoteD
 import com.example.marketuniversitario.feature.user.data.models.toDomain
 import com.example.marketuniversitario.feature.user.data.models.toRoomEntity
 import com.example.marketuniversitario.feature.user.data.workers.SyncUserWorker
+import com.example.marketuniversitario.feature.user.domain.model.AccountStatus
 import com.example.marketuniversitario.feature.user.domain.model.User
 import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -172,6 +173,49 @@ class UserRepositoryImpl @Inject constructor(
     override fun getAllUsers(): Flow<List<User>> {
         return remoteDataSource.getAllUsers().map { list ->
             list.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun applyUserSanction(
+        userId: String,
+        status: AccountStatus,
+        suspendedUntil: Long?,
+        reason: String
+    ): Result<Unit> {
+        return try {
+            remoteDataSource.applyUserSanction(userId, status.value, suspendedUntil, reason)
+            val localUser = localDataSource.getUserById(userId)
+            if (localUser != null) {
+                val updatedUser = localUser.copy(
+                    accountStatus = status.value,
+                    suspendedUntil = suspendedUntil,
+                    suspensionReason = reason,
+                    isSynced = true
+                )
+                localDataSource.saveUser(updatedUser)
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun restoreUserAccount(userId: String): Result<Unit> {
+        return try {
+            remoteDataSource.restoreUserAccount(userId)
+            val localUser = localDataSource.getUserById(userId)
+            if (localUser != null) {
+                val updatedUser = localUser.copy(
+                    accountStatus = "active",
+                    suspendedUntil = null,
+                    suspensionReason = "",
+                    isSynced = true
+                )
+                localDataSource.saveUser(updatedUser)
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

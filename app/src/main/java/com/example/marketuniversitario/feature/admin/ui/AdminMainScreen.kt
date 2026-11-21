@@ -21,8 +21,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.marketuniversitario.feature.admin.navigation.AdminBottomNavItem
 import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminDashboardScreen
 import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminModule2Screen
-import com.example.marketuniversitario.feature.admin.ui.ScreenExamples.AdminModule4Screen
 import com.example.marketuniversitario.feature.admin.ui.util.AdminBottomNavigationBar
+import com.example.marketuniversitario.feature.moderation.ui.ModerationRoute
 import com.example.marketuniversitario.feature.reports.ui.admin_reports.AdminReportsRoute
 
 @Composable
@@ -46,7 +46,7 @@ fun AdminMainScreen(
                 val title = when (currentRoute) {
                     AdminBottomNavItem.Module2.route -> "Módulo 2"
                     AdminBottomNavItem.Reports.route -> "Incidencias"
-                    AdminBottomNavItem.Module4.route -> "Módulo 4"
+                    AdminBottomNavItem.Module4.route -> "Moderación de Cuentas"
                     else -> ""
                 }
 
@@ -100,10 +100,6 @@ fun AdminMainScreen(
                 )
             }
 
-            // DashboardGraph(bottomNavController, rootNavController)
-            // SecondSectionGraph(bottomNavController)
-            // IncidentsGraph(bottomNavController)
-
             composable(AdminBottomNavItem.Module2.route) {
                 AdminModule2Screen()
             }
@@ -117,7 +113,7 @@ fun AdminMainScreen(
             }
 
             composable(AdminBottomNavItem.Module4.route) {
-                AdminModule4Screen()
+                ModerationRoute()
             }
         }
     }

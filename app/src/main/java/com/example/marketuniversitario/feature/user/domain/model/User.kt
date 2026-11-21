@@ -15,6 +15,9 @@ data class User (
     val primaryIntent: String? = null,
     val isProfileComplete: Boolean = false,
     val isAdmin: Boolean = false,
+    val accountStatus: AccountStatus = AccountStatus.ACTIVE,
+    val suspendedUntil: Long? = null,
+    val suspensionReason: String = "",
     val recentSearches: List<String> = emptyList(),
     val affinityScores: Map<String, Int> = emptyMap()
 )

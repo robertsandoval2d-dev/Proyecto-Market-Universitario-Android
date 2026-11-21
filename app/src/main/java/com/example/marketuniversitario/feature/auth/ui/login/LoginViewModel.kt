@@ -3,8 +3,11 @@ package com.example.marketuniversitario.feature.auth.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marketuniversitario.feature.auth.domain.usecases.LoginUseCase
+import com.example.marketuniversitario.feature.auth.domain.usecases.LogoutUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.AccountStatusResult
 import com.example.marketuniversitario.feature.user.domain.usecases.CheckProfileCompletionUseCase
 import com.example.marketuniversitario.feature.user.domain.usecases.CheckUserIsAdminUseCase
+import com.example.marketuniversitario.feature.user.domain.usecases.ValidateUserAccountStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,8 +18,10 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
+    private val logoutUseCase: LogoutUseCase,
     private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase,
-    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase
+    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase,
+    private val validateUserAccountStatusUseCase: ValidateUserAccountStatusUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -45,7 +50,14 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             loginUseCase.invoke(email, password)
-                .onSuccess {
+                .onSuccess { session ->
+                    val accountStatusResult = validateUserAccountStatusUseCase(session.uid)
+                    if (accountStatusResult is AccountStatusResult.Blocked) {
+                        logoutUseCase()
+                        _state.update { it.copy(status = LoginStatus.Error(accountStatusResult.message)) }
+                        return@launch
+                    }
+
                     val isComplete = checkProfileCompletionUseCase().getOrDefault(false)
                     val isAdmin = checkUserIsAdminUseCase().getOrDefault(false)
                     _state.update { it.copy(status = LoginStatus.Success(isComplete, isAdmin)) }

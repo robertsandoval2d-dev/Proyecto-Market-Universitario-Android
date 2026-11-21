@@ -65,6 +65,81 @@ class UserRemoteDataSource @Inject constructor(
             .await()
     }
 
+    suspend fun applyUserSanction(
+        userId: String,
+        status: String,
+        suspendedUntil: Long?,
+        reason: String
+    ) {
+        val userDoc = firestore.collection("users").document(userId).get().await()
+        val businessId = userDoc.getString("businessId")
+
+        val batch = firestore.batch()
+
+        val userRef = firestore.collection("users").document(userId)
+        batch.update(
+            userRef,
+            mapOf(
+                "accountStatus" to status,
+                "suspendedUntil" to suspendedUntil,
+                "suspensionReason" to reason,
+                "updatedAt" to System.currentTimeMillis()
+            )
+        )
+
+        // Si el usuario sancionado tiene un negocio, desactivar el negocio y todos sus productos (isAvailable = false)
+        if (!businessId.isNullOrBlank()) {
+            val businessRef = firestore.collection("businesses").document(businessId)
+            batch.update(businessRef, "isActive", false)
+
+            val productsSnapshot = firestore.collection("products")
+                .whereEqualTo("businessId", businessId)
+                .get()
+                .await()
+
+            for (doc in productsSnapshot.documents) {
+                batch.update(doc.reference, "isAvailable", false)
+            }
+        }
+
+        batch.commit().await()
+    }
+
+    suspend fun restoreUserAccount(userId: String) {
+        val userDoc = firestore.collection("users").document(userId).get().await()
+        val businessId = userDoc.getString("businessId")
+
+        val batch = firestore.batch()
+
+        val userRef = firestore.collection("users").document(userId)
+        batch.update(
+            userRef,
+            mapOf(
+                "accountStatus" to "active",
+                "suspendedUntil" to null,
+                "suspensionReason" to "",
+                "updatedAt" to System.currentTimeMillis()
+            )
+        )
+
+        // Si el usuario tiene un negocio, reactivar el negocio y todos sus productos (isAvailable = true)
+        if (!businessId.isNullOrBlank()) {
+            val businessRef = firestore.collection("businesses").document(businessId)
+            batch.update(businessRef, "isActive", true)
+
+            val productsSnapshot = firestore.collection("products")
+                .whereEqualTo("businessId", businessId)
+                .get()
+                .await()
+
+            for (doc in productsSnapshot.documents) {
+                batch.update(doc.reference, "isAvailable", true)
+            }
+        }
+
+        batch.commit().await()
+    }
+
     fun getAllUsers(): Flow<List<UserEntity>> {
         return firestore.collection("users")
             .snapshots()

@@ -2,6 +2,7 @@ package com.example.marketuniversitario.feature.business.data.models
 
 import com.example.marketuniversitario.feature.business.domain.models.Product
 import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.PropertyName
 
 data class ProductEntity(
     @DocumentId val id: String = "",
@@ -15,7 +16,8 @@ data class ProductEntity(
     val images: List<String> = emptyList(),
     val stock: Int? = null,
     val reservedStock: Int? = 0,
-    val isAvailable: Boolean = true,
+    @get:PropertyName("isAvailable") @set:PropertyName("isAvailable")
+    var isAvailable: Boolean = true,
     val tags: List<String> = emptyList(),
     val views: Int = 0,
     val salesCount: Int = 0,

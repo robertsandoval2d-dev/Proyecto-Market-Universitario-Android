@@ -40,7 +40,7 @@ sealed class AdminBottomNavItem(
 
     object Module4 : AdminBottomNavItem(
         route = "admin_module4_tab",
-        title = "Módulo 4",
+        title = "Moderación",
         selectedIcon = Icons.Filled.AdminPanelSettings,
         unselectedIcon = Icons.Outlined.AdminPanelSettings
     )

@@ -6,7 +6,6 @@ import com.example.marketuniversitario.feature.home.data.mappers.toFeedProduct
 import com.example.marketuniversitario.feature.home.domain.models.FeedProduct
 import com.example.marketuniversitario.feature.user.domain.repositories.UserRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -16,11 +15,11 @@ class GetFeedProductsUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(): Flow<List<FeedProduct>> {
-
         val currentUserId = authRepository.getCurrentUserId()
             ?: throw IllegalStateException("Sesión no disponible")
         val userBusinessId = userRepository.getUser(currentUserId).getOrThrow()?.businessId
-        val productsList = productRepository.getProducts().map { products ->
+
+        return productRepository.getProducts().map { products ->
             products
                 .filter { product ->
                     val isNotOwnProduct =
@@ -30,6 +29,5 @@ class GetFeedProductsUseCase @Inject constructor(
                 }
                 .map { it.toFeedProduct() }
         }
-        return productsList
     }
 }

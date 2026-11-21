@@ -39,7 +39,7 @@ class ProductRemoteDataSource @Inject constructor(
             val seeds = topTags.take(10)
             products.where(
                 Filter.and(
-                    Filter.equalTo("available", true),
+                    Filter.equalTo("isAvailable", true),
                     Filter.or(
                         Filter.arrayContainsAny("tags", seeds),
                         Filter.inArray("category", seeds)
@@ -47,7 +47,7 @@ class ProductRemoteDataSource @Inject constructor(
                 )
             )
         } else {
-            products.whereEqualTo("available", true)
+            products.whereEqualTo("isAvailable", true)
         }
 
         val snapshot = query.limit(30).get().await()

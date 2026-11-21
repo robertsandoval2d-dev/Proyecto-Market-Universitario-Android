@@ -2,6 +2,7 @@ package com.example.marketuniversitario.feature.user.data.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.marketuniversitario.feature.user.domain.model.AccountStatus
 import com.example.marketuniversitario.feature.user.domain.model.User
 import java.util.UUID
 
@@ -21,6 +22,9 @@ data class UserRoomEntity(
     val primaryIntent: String?,
     val isProfileComplete: Boolean,
     val isAdmin: Boolean = false,
+    val accountStatus: String = "active",
+    val suspendedUntil: Long? = null,
+    val suspensionReason: String = "",
     val recentSearches: String = "",
     val affinityScores: String = "",
     val isSynced: Boolean = false // Para sincronización offline con WorkManager
@@ -41,6 +45,9 @@ fun User.toRoomEntity(isSynced: Boolean = false) = UserRoomEntity(
     primaryIntent = this.primaryIntent,
     isProfileComplete = this.isProfileComplete,
     isAdmin = this.isAdmin,
+    accountStatus = this.accountStatus.value,
+    suspendedUntil = this.suspendedUntil,
+    suspensionReason = this.suspensionReason,
     recentSearches = this.recentSearches.joinToString(","),
     affinityScores = this.affinityScores.entries.joinToString(",") { "${it.key}:${it.value}" },
     isSynced = isSynced
@@ -61,6 +68,9 @@ fun UserRoomEntity.toDomain() = User(
     primaryIntent = this.primaryIntent,
     isProfileComplete = this.isProfileComplete,
     isAdmin = this.isAdmin,
+    accountStatus = AccountStatus.fromString(this.accountStatus),
+    suspendedUntil = this.suspendedUntil,
+    suspensionReason = this.suspensionReason,
     recentSearches = if (this.recentSearches.isBlank()) emptyList() else this.recentSearches.split(","),
     affinityScores = if (this.affinityScores.isBlank()) emptyMap() else this.affinityScores.split(",").associate {
         val parts = it.split(":")

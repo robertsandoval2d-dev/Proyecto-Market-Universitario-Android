@@ -1,5 +1,6 @@
 package com.example.marketuniversitario.feature.user.data.models
 
+import com.example.marketuniversitario.feature.user.domain.model.AccountStatus
 import com.example.marketuniversitario.feature.user.domain.model.User
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.PropertyName
@@ -22,6 +23,9 @@ data class UserEntity(
     var isProfileComplete: Boolean = false,
     @get:PropertyName("isAdmin") @set:PropertyName("isAdmin")
     var isAdmin: Boolean = false,
+    val accountStatus: String = "active",
+    val suspendedUntil: Long? = null,
+    val suspensionReason: String = "",
     val recentSearches: List<String> = emptyList(),
     val affinityScores: Map<String, Int> = emptyMap(),
 
@@ -43,6 +47,9 @@ fun User.toEntity() = UserEntity(
     primaryIntent = this.primaryIntent,
     isProfileComplete = this.isProfileComplete,
     isAdmin = this.isAdmin,
+    accountStatus = this.accountStatus.value,
+    suspendedUntil = this.suspendedUntil,
+    suspensionReason = this.suspensionReason,
     recentSearches = this.recentSearches,
     affinityScores = this.affinityScores
 )
@@ -62,6 +69,9 @@ fun UserEntity.toDomain() = User(
     primaryIntent = this.primaryIntent,
     isProfileComplete = this.isProfileComplete,
     isAdmin = this.isAdmin,
+    accountStatus = AccountStatus.fromString(this.accountStatus),
+    suspendedUntil = this.suspendedUntil,
+    suspensionReason = this.suspensionReason,
     recentSearches = this.recentSearches,
     affinityScores = this.affinityScores
 )
