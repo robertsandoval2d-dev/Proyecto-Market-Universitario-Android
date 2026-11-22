@@ -1,0 +1,29 @@
+package com.market.univpe.feature.admin.navigation
+
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.composable
+import com.market.univpe.feature.admin.ui.AdminMainRoute
+import com.market.univpe.feature.admin.ui.role_selection.RoleSelectionRoute
+import com.market.univpe.feature.analytics.navigation.analyticsGraph
+
+fun NavGraphBuilder.adminGraph(navHostController: NavHostController) {
+    composable("role_selection") {
+        RoleSelectionRoute(
+            onNavigateToUserHome = {
+                navHostController.navigate("inicio") {
+                    popUpTo("role_selection") { inclusive = true }
+                }
+            },
+            onNavigateToAdminManagement = {
+                navHostController.navigate("admin_management")
+            }
+        )
+    }
+
+    composable("admin_management") {
+        AdminMainRoute(rootNavController = navHostController)
+    }
+
+    analyticsGraph(navHostController)
+}

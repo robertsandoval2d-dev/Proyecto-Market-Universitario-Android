@@ -1,0 +1,77 @@
+package com.market.univpe.feature.user.data.models
+
+import com.market.univpe.feature.user.domain.model.AccountStatus
+import com.market.univpe.feature.user.domain.model.User
+import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.PropertyName
+
+data class UserEntity(
+    @DocumentId val id: String = "",
+    val name: String = "",
+    val email: String = "",
+    val phone: String = "",
+    val preferences: List<String> = emptyList(),
+    @get:PropertyName("hasBusiness") @set:PropertyName("hasBusiness")
+    var hasBusiness: Boolean = false,
+    val businessId: String? = null,
+    val photoUrl: String? = null,
+    val birthday: Long? = null,
+    val faculty: String? = null,
+    val gender: String? = null,
+    val primaryIntent: String? = null,
+    @get:PropertyName("isProfileComplete") @set:PropertyName("isProfileComplete")
+    var isProfileComplete: Boolean = false,
+    @get:PropertyName("isAdmin") @set:PropertyName("isAdmin")
+    var isAdmin: Boolean = false,
+    val accountStatus: String = "active",
+    val suspendedUntil: Long? = null,
+    val suspensionReason: String = "",
+    val recentSearches: List<String> = emptyList(),
+    val affinityScores: Map<String, Int> = emptyMap(),
+
+    val createdAt: Long = System.currentTimeMillis()
+)
+
+fun User.toEntity() = UserEntity(
+    id = this.id,
+    name = this.name,
+    email = this.email,
+    phone = this.phone,
+    preferences = this.preferences,
+    hasBusiness = this.hasBusiness,
+    businessId = this.businessId,
+    photoUrl = this.photoUrl,
+    birthday = this.birthday,
+    faculty = this.faculty,
+    gender = this.gender,
+    primaryIntent = this.primaryIntent,
+    isProfileComplete = this.isProfileComplete,
+    isAdmin = this.isAdmin,
+    accountStatus = this.accountStatus.value,
+    suspendedUntil = this.suspendedUntil,
+    suspensionReason = this.suspensionReason,
+    recentSearches = this.recentSearches,
+    affinityScores = this.affinityScores
+)
+
+fun UserEntity.toDomain() = User(
+    id = this.id,
+    name = this.name,
+    email = this.email,
+    phone = this.phone,
+    preferences = this.preferences,
+    hasBusiness = this.hasBusiness,
+    businessId = this.businessId,
+    photoUrl = this.photoUrl,
+    birthday = this.birthday,
+    faculty = this.faculty,
+    gender = this.gender,
+    primaryIntent = this.primaryIntent,
+    isProfileComplete = this.isProfileComplete,
+    isAdmin = this.isAdmin,
+    accountStatus = AccountStatus.fromString(this.accountStatus),
+    suspendedUntil = this.suspendedUntil,
+    suspensionReason = this.suspensionReason,
+    recentSearches = this.recentSearches,
+    affinityScores = this.affinityScores
+)

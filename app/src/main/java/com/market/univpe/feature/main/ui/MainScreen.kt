@@ -1,0 +1,111 @@
+package com.market.univpe.feature.main.ui
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.NavHostController
+import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.market.univpe.feature.business.navigation.businessGraph
+import com.market.univpe.feature.home.ui.home.HomeRoute
+import com.market.univpe.feature.main.navigation.BottomNavItem
+import com.market.univpe.feature.main.ui.util.BottomNavigationBar
+import com.market.univpe.feature.orders.ui.orders.OrdersRoute
+import com.market.univpe.feature.user.navigation.profileGraph
+
+@Composable
+fun MainRoute(rootNavController: NavHostController) {
+    MainScreen(rootNavController = rootNavController)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreen(
+    rootNavController: NavHostController
+) {
+    val bottomNavController = rememberNavController()
+    val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val isHome = BottomNavItem.Home.matchesRoute(currentRoute)
+
+    Scaffold(
+        topBar = {
+            if (!isHome) {
+                val title = when {
+                    BottomNavItem.Business.matchesRoute(currentRoute) -> "Mi Negocio"
+                    BottomNavItem.Orders.matchesRoute(currentRoute) -> "Mis Pedidos"
+                    BottomNavItem.Profile.matchesRoute(currentRoute) -> "Mi Perfil"
+                    else -> ""
+                }
+
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = title,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
+        },
+        bottomBar = {
+            BottomNavigationBar(navController = bottomNavController)
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = bottomNavController,
+            startDestination = BottomNavItem.Home.route,
+            modifier = Modifier.padding(
+                top = if (isHome) 0.dp else innerPadding.calculateTopPadding(),
+                bottom = innerPadding.calculateBottomPadding()
+            )
+        ) {
+            composable(BottomNavItem.Home.route) {
+                HomeRoute(
+                    onNavigateToStore = { businessId ->
+                        rootNavController.navigate("view_business/$businessId")
+                    },
+                    onNavigateToItem = { productId ->
+                        rootNavController.navigate("product_detail/$productId")
+                    },
+                    onRequestOrderClick = { productId ->
+                        rootNavController.navigate("request/$productId")
+                    }
+                )
+            }
+            businessGraph(bottomNavController, rootNavController)
+            composable(BottomNavItem.Orders.route) {
+                OrdersRoute(
+                    onNavigateToChat = { orderId ->
+                        rootNavController.navigate("chat/$orderId")
+                    }
+                )
+            }
+            profileGraph(
+                navController = bottomNavController,
+                onNavigateToEditProfile = { bottomNavController.navigate("edit_profile") },
+                onNavigateToPreferences = { bottomNavController.navigate("preferences") },
+                onNavigateToTerms = { bottomNavController.navigate("terms") },
+                onNavigateToUserReports = { bottomNavController.navigate("user_reports") },
+                onNavigateToAdminManagement = { rootNavController.navigate("admin_management") },
+                onLogoutSuccess = { rootNavController.navigate("welcome") { popUpTo(0) } }
+            )
+
+        }
+    }
+}

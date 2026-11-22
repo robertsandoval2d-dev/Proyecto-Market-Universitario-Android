@@ -1,0 +1,71 @@
+package com.market.univpe.feature.home.ui.home
+
+import android.net.Uri
+import com.market.univpe.feature.business.domain.models.ProductCategory
+import com.market.univpe.feature.home.domain.models.FeedProduct
+import com.market.univpe.feature.home.domain.models.UserSummary
+
+sealed interface HomeStatus {
+    object Idle : HomeStatus
+    object Loading : HomeStatus
+    object Success : HomeStatus
+    data class Error(val message: String) : HomeStatus
+}
+data class HomeState(
+    //User Summary
+    val userSummary: UserSummary? = null,
+
+    //Notification
+    val showNotification: Boolean = false,
+
+    //Búsqueda
+    val selectedCategory: ProductCategory? = null,
+    val selectedTagId: String? = null,
+    val query: String? = null,
+    val activeQuery: String? = null,
+
+    //Other search options
+    val showSearchOptions: Boolean = false,
+    val selectedImage: Uri = Uri.EMPTY,
+
+    //Solicitar producto
+    val requestProductId: String? = null,
+
+    //Lista productos
+    val products: List<FeedProduct> = emptyList(),
+    val selectedProduct: FeedProduct? = null,
+
+    val status: HomeStatus = HomeStatus.Idle,
+)
+
+sealed interface HomeEvent {
+
+    //Eventos para userInfo
+    data object LoadUser : HomeEvent
+
+    //Eventos para productos
+    data object LoadProducts : HomeEvent
+    object LoadFeed : HomeEvent
+    object Refresh : HomeEvent
+    data class SelectProductQuickView(val product: FeedProduct?) : HomeEvent
+
+    data class RequestProductSelected(val productId: String?) : HomeEvent
+
+    //Eventos barra búsqueda
+    data class QueryChanged(val query: String) : HomeEvent
+    data class CategorySelected(val categoryId: ProductCategory?) : HomeEvent
+    data class TagSelected(val tagId: String?) : HomeEvent
+    object Search : HomeEvent
+
+    //Eventos buscar con imagen
+    object ShowSearchOptions : HomeEvent
+    object DismissSearchOptions : HomeEvent
+    data class SelectImage(val uri: Uri) : HomeEvent
+
+    //Eventos para notificación
+    object ShowNotification : HomeEvent
+    object DismissNotification : HomeEvent
+
+
+//    data class CategorySelected(val categoryId: String?) : HomeEvent
+}

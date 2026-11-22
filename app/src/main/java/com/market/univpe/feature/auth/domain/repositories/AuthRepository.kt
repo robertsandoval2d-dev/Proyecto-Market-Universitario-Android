@@ -1,0 +1,16 @@
+package com.market.univpe.feature.auth.domain.repositories
+
+import com.market.univpe.feature.auth.domain.models.UserSession
+
+interface AuthRepository {
+    suspend fun loginWithEmail(email: String, password: String): Result<UserSession>
+    suspend fun signInWithGoogleToken(idToken: String): Result<UserSession>
+    fun isUserLoggedIn(): Boolean
+    fun getCurrentUserId(): String?
+    suspend fun register(email: String, password: String): Result<UserSession>
+    suspend fun sendEmailVerification(): Result<Boolean>
+    fun isEmailVerified(): Boolean
+    suspend fun sendPasswordResetEmail(email: String): Result<Boolean>
+    suspend fun reloadUser(): Result<UserSession>
+    fun logout()
+}

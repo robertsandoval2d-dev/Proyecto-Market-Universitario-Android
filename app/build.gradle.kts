@@ -7,13 +7,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.marketuniversitario"
+    namespace = "com.market.univpe"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.marketuniversitario"
+        applicationId = "com.market.univpe"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

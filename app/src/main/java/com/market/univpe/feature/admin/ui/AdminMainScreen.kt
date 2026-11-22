@@ -1,0 +1,120 @@
+package com.market.univpe.feature.admin.ui
+
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.market.univpe.feature.admin.navigation.AdminBottomNavItem
+import com.market.univpe.feature.admin.ui.ScreenExamples.AdminDashboardScreen
+import com.market.univpe.feature.admin.ui.ScreenExamples.AdminModule2Screen
+import com.market.univpe.feature.admin.ui.util.AdminBottomNavigationBar
+import com.market.univpe.feature.moderation.ui.ModerationRoute
+import com.market.univpe.feature.reports.ui.admin_reports.AdminReportsRoute
+
+@Composable
+fun AdminMainRoute(rootNavController: NavHostController) {
+    AdminMainScreen(rootNavController = rootNavController)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminMainScreen(
+    rootNavController: NavHostController
+) {
+    val bottomNavController = rememberNavController()
+    val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val isDashboard = currentRoute == AdminBottomNavItem.Dashboard.route
+
+    Scaffold(
+        topBar = {
+            if (!isDashboard) {
+                val title = when (currentRoute) {
+                    AdminBottomNavItem.Module2.route -> "Módulo 2"
+                    AdminBottomNavItem.Reports.route -> "Incidencias"
+                    AdminBottomNavItem.Module4.route -> "Moderación de Cuentas"
+                    else -> ""
+                }
+
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = title,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
+        },
+        bottomBar = {
+            AdminBottomNavigationBar(navController = bottomNavController)
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = bottomNavController,
+            startDestination = AdminBottomNavItem.Dashboard.route,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = if (isDashboard) 0.dp else innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding()
+                )
+        ) {
+            composable(AdminBottomNavItem.Dashboard.route) {
+                AdminDashboardScreen(
+                    onSwitchToUserMode = {
+                        rootNavController.navigate("inicio") {
+                            popUpTo("role_selection") { inclusive = true }
+                        }
+                    },
+                    onNavigateToUsers = {
+                        rootNavController.navigate("analytics_users")
+                    },
+                    onNavigateToBusinesses = {
+                        rootNavController.navigate("analytics_businesses")
+                    },
+                    onNavigateToProducts = {
+                        rootNavController.navigate("analytics_products")
+                    },
+                    onNavigateToReports = {
+                        rootNavController.navigate("analytics_reports")
+                    }
+                )
+            }
+
+            composable(AdminBottomNavItem.Module2.route) {
+                AdminModule2Screen()
+            }
+
+            composable(AdminBottomNavItem.Reports.route) {
+                AdminReportsRoute(
+                    onNavigateToChat = { orderId ->
+                        rootNavController.navigate("admin_chat/$orderId")
+                    }
+                )
+            }
+
+            composable(AdminBottomNavItem.Module4.route) {
+                ModerationRoute()
+            }
+        }
+    }
+}

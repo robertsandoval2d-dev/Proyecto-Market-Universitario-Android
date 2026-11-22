@@ -1,0 +1,522 @@
+package com.market.univpe.feature.orders.ui.orders
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.market.univpe.core.theme.MarketUniversitarioTheme
+import com.market.univpe.feature.orders.domain.models.Order
+import com.market.univpe.feature.orders.domain.models.OrderStatus
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+@Composable
+fun OrdersRoute(
+    viewModel: OrdersViewModel = hiltViewModel(),
+    onNavigateToChat: (String) -> Unit = {}
+) {
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(OrdersEvent.Refresh)
+    }
+
+    OrdersScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateToChat = onNavigateToChat
+    )
+}
+
+@Composable
+fun OrdersScreen(
+    state: OrdersState,
+    onEvent: (OrdersEvent) -> Unit,
+    onNavigateToChat: (String) -> Unit = {}
+) {
+    var selectedOrderForRating by remember { mutableStateOf<Order?>(null) }
+    var selectedOrderForReport by remember { mutableStateOf<Order?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Pestañas (Tabs) superiores
+        if (state.hasBusiness) {
+            TabRow(
+                selectedTabIndex = state.selectedTab.ordinal,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier.tabIndicatorOffset(tabPositions[state.selectedTab.ordinal]),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            ) {
+                OrderTab.entries.forEach { tab ->
+                    Tab(
+                        selected = state.selectedTab == tab,
+                        onClick = { onEvent(OrdersEvent.TabChanged(tab)) },
+                        text = {
+                            Text(
+                                text = tab.title,
+                                fontWeight = if (state.selectedTab == tab) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = "Mis Compras",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+            )
+        }
+
+        // Lista de Pedidos
+        if (state.errorMessage != null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = state.errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        } else if (state.currentOrders.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "No tienes pedidos aquí aún.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(state.currentOrders) { order ->
+                    OrderCard(
+                        order = order,
+                        onEvent = onEvent,
+                        onNavigateToChat = onNavigateToChat,
+                        onRateClick = { selectedOrderForRating = it },
+                        onReportClick = { selectedOrderForReport = it }
+                    )
+                }
+            }
+        }
+    }
+
+    selectedOrderForRating?.let { order ->
+        com.market.univpe.feature.reviews.ui.rating.RatingBottomSheetRoute(
+            productId = order.productId,
+            studentId = state.currentUserId,
+            studentName = state.currentUserName,
+            productName = order.productName,
+            productImageUrl = order.productImage,
+            onDismiss = { selectedOrderForRating = null },
+            onSuccess = { selectedOrderForRating = null }
+        )
+    }
+
+    selectedOrderForReport?.let { order ->
+        com.market.univpe.feature.reports.ui.report.ReportBottomSheetRoute(
+            orderId = order.id,
+            businessId = order.businessId,
+            studentId = state.currentUserId,
+            orderStatusAtReport = order.status.name,
+            onDismiss = { selectedOrderForReport = null },
+            onSuccess = { selectedOrderForReport = null }
+        )
+    }
+}
+
+@Composable
+fun OrderCard(
+    order: Order,
+    onEvent: (OrdersEvent) -> Unit,
+    onNavigateToChat: (String) -> Unit,
+    onRateClick: (Order) -> Unit,
+    onReportClick: (Order) -> Unit
+) {
+    var showAcceptDialog by remember { mutableStateOf(false) }
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var showCompleteDialog by remember { mutableStateOf(false) }
+
+    if (showAcceptDialog) {
+        AlertDialog(
+            onDismissRequest = { showAcceptDialog = false },
+            title = { Text("Aceptar Pedido") },
+            text = { Text("¿Estás seguro de que deseas aceptar este pedido?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAcceptDialog = false
+                    onEvent(OrdersEvent.AcceptOrder(order.id))
+                }) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAcceptDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (showRejectDialog) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = { Text("Rechazar Pedido") },
+            text = { Text("¿Estás seguro de que deseas rechazar este pedido? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showRejectDialog = false
+                        onEvent(OrdersEvent.RejectOrder(order.id))
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Sí, rechazar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRejectDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (showCompleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showCompleteDialog = false },
+            title = { Text("Completar Venta") },
+            text = { Text("¿Estás seguro de que deseas marcar esta venta como completada?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCompleteDialog = false
+                    onEvent(OrdersEvent.CompleteOrder(order.id))
+                }) {
+                    Text("Sí, completar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCompleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // Determinar colores del "Chip" de estado
+    val (statusBgColor, statusTextColor) = when (order.status) {
+        OrderStatus.PENDING -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+        OrderStatus.PREPARING -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+        OrderStatus.READY_FOR_PICKUP -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+        OrderStatus.COMPLETED -> Color(0xFFE8F5E9) to Color(0xFF2E7D32) // Verde genérico para éxito
+        OrderStatus.REJECTED -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+    }
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceBright),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val dateStr = SimpleDateFormat("dd MMM, hh:mm a", Locale.US).format(Date(order.createdAt))
+                Text(
+                    text = dateStr,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                // Chip de Estado
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(statusBgColor)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = order.status.displayName,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = statusTextColor
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Imagen del Producto
+                if (order.productImage.isNotBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(order.productImage)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = order.productName,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "Sin Img", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Detalles del Producto
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = order.productName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    
+                    if (order.isSale) {
+                        val buyerDisplay = order.buyerName.takeIf { it.isNotBlank() }
+                            ?: "ID-${order.buyerId.take(6)}"
+                        Text(
+                            text = "Comprador: $buyerDisplay",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    Text(
+                        text = "Cantidad: ${order.quantity}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Total: S/ ${"%.2f".format(order.productPrice * order.quantity)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            // --- ACCIONES DEPENDIENDO DEL ROL Y ESTADO ---
+            
+            // Acciones para Vendedor
+            if (order.isSale) {
+                if (order.status == OrderStatus.PENDING) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        OutlinedButton(
+                            onClick = { showRejectDialog = true },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            modifier = Modifier.height(36.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                        ) {
+                            Text("Rechazar")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { showAcceptDialog = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.height(36.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                        ) {
+                            Text("Aceptar Pedido")
+                        }
+                    }
+                } else if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { onNavigateToChat(order.id) },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.fillMaxWidth().height(40.dp)
+                    ) {
+                        Text("Chat con el Comprador")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { showRejectDialog = true },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            modifier = Modifier.weight(1f).height(36.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("Rechazar")
+                        }
+                        Button(
+                            onClick = { showCompleteDialog = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            modifier = Modifier.weight(1f).height(36.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("Completar Venta")
+                        }
+                    }
+                }
+            } else {
+                // Acciones para Comprador (Cliente)
+                if (order.status != OrderStatus.PENDING) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.READY_FOR_PICKUP) {
+                            Button(
+                                onClick = { onNavigateToChat(order.id) },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                modifier = Modifier.fillMaxWidth().height(40.dp)
+                            ) {
+                                Text("Chat con el Vendedor")
+                            }
+                        } else if (order.status == OrderStatus.COMPLETED) {
+                            Button(
+                                onClick = { onRateClick(order) },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                modifier = Modifier.fillMaxWidth().height(40.dp)
+                            ) {
+                                Text("Calificación de Producto")
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = { onReportClick(order) },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            modifier = Modifier.fillMaxWidth().height(40.dp)
+                        ) {
+                            Text("Reportar Incidencia")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(
+    showSystemUi = true,
+    showBackground = true, name = "1. Mis Ventas (Vendedor)")
+@Composable
+fun OrdersScreenSalesPreview() {
+    MarketUniversitarioTheme {
+        OrdersScreen(
+            state = OrdersState(
+                selectedTab = OrderTab.SALES,
+                hasBusiness = true,
+                purchases = emptyList(),
+                sales = listOf(
+                    Order(
+                        id = "1",
+                        productName = "Brownie de Chocolate",
+                        productImage = "",
+                        productPrice = 4.5,
+                        quantity = 3,
+                        status = OrderStatus.PENDING,
+                        isSale = true
+                    )
+                )
+            ),
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(
+    showSystemUi = true,
+    showBackground = true, name = "2. Mis Compras (Cliente)")
+@Composable
+fun OrdersScreenPurchasesPreview() {
+    MarketUniversitarioTheme {
+        OrdersScreen(
+            state = OrdersState(
+                selectedTab = OrderTab.PURCHASES,
+                hasBusiness = false,
+                purchases = listOf(
+                    Order(
+                        id = "2",
+                        productName = "Menú Almuerzo - FISI",
+                        productImage = "",
+                        productPrice = 12.0,
+                        quantity = 2,
+                        status = OrderStatus.PREPARING,
+                        isSale = false
+                    ),
+                    Order(
+                        id = "3",
+                        productName = "Calculadora Científica Casio",
+                        productImage = "",
+                        productPrice = 45.0,
+                        quantity = 1,
+                        status = OrderStatus.COMPLETED,
+                        isSale = false
+                    )
+                ),
+                sales = emptyList()
+            ),
+            onEvent = {}
+        )
+    }
+}

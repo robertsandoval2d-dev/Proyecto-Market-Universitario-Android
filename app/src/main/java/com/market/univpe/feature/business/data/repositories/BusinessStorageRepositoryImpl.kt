@@ -1,0 +1,37 @@
+package com.market.univpe.feature.business.data.repositories
+
+import com.market.univpe.feature.business.data.datasources.BusinessStorageRemoteDataSource
+import com.market.univpe.feature.business.domain.repositories.BusinessStorageRepository
+import javax.inject.Inject
+
+class BusinessStorageRepositoryImpl @Inject constructor(
+    private val remoteDataSource: BusinessStorageRemoteDataSource
+) : BusinessStorageRepository {
+
+    override suspend fun uploadBusinessBanner(businessId: String, imageUri: String): Result<String> {
+        return try {
+            val url = remoteDataSource.uploadImage("business_banners/$businessId.webp", imageUri)
+            Result.success(url)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun uploadProductImage(productId: String, imageUri: String): Result<String> {
+        return try {
+            val url = remoteDataSource.uploadImage("product_images/$productId-${System.currentTimeMillis()}.webp", imageUri)
+            Result.success(url)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteImage(imageUrl: String): Result<Unit> {
+        return try {
+            remoteDataSource.deleteImage(imageUrl)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}

@@ -1,0 +1,36 @@
+package com.market.univpe.feature.business.di
+
+import com.market.univpe.feature.business.data.repositories.BusinessRepositoryImpl
+import com.market.univpe.feature.business.data.repositories.BusinessStorageRepositoryImpl
+import com.market.univpe.feature.business.data.repositories.ProductRepositoryImpl
+import com.market.univpe.feature.business.domain.repositories.BusinessRepository
+import com.market.univpe.feature.business.domain.repositories.BusinessStorageRepository
+import com.market.univpe.feature.business.domain.repositories.ProductRepository
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class BusinessModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindBusinessRepository(
+        impl: BusinessRepositoryImpl
+    ): BusinessRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindProductRepository(
+        impl: ProductRepositoryImpl
+    ): ProductRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBusinessStorageRepository(
+        impl: BusinessStorageRepositoryImpl
+    ): BusinessStorageRepository
+}

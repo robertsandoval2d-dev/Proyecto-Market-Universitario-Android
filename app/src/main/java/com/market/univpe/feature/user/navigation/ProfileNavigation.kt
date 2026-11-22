@@ -1,0 +1,51 @@
+package com.market.univpe.feature.user.navigation
+
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.composable
+import com.market.univpe.feature.user.ui.edit_profile.EditProfileRoute
+import com.market.univpe.feature.user.ui.preferences.PreferencesRoute
+import com.market.univpe.feature.user.ui.profile.ProfileRoute
+import com.market.univpe.feature.user.ui.reports.UserReportsRoute
+import com.market.univpe.feature.user.ui.terms.TermsRoute
+
+fun NavGraphBuilder.profileGraph(
+    navController: NavHostController,
+    onNavigateToEditProfile: () -> Unit,
+    onNavigateToPreferences: () -> Unit,
+    onNavigateToTerms: () -> Unit,
+    onNavigateToUserReports: () -> Unit,
+    onNavigateToAdminManagement: () -> Unit,
+    onLogoutSuccess: () -> Unit
+) {
+    composable("profile_tab") {
+        ProfileRoute(
+            onNavigateToEditProfile = onNavigateToEditProfile,
+            onNavigateToPreferences = onNavigateToPreferences,
+            onNavigateToTerms = onNavigateToTerms,
+            onNavigateToUserReports = onNavigateToUserReports,
+            onNavigateToAdminManagement = onNavigateToAdminManagement,
+            onLogoutSuccess = onLogoutSuccess
+        )
+    }
+    composable("edit_profile") {
+        EditProfileRoute(
+            onNavigateBack = { navController.navigateUp() }
+        )
+    }
+    composable("preferences") {
+        PreferencesRoute(
+            onNavigateBack = { navController.navigateUp() }
+        )
+    }
+    composable("terms") {
+        TermsRoute(
+            onNavigateBack = { navController.navigateUp() }
+        )
+    }
+    composable("user_reports") {
+        UserReportsRoute(
+            onNavigateBack = { navController.navigateUp() }
+        )
+    }
+}

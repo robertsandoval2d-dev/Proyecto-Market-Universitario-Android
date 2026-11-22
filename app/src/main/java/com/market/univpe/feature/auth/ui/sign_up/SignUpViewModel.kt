@@ -1,0 +1,107 @@
+package com.market.univpe.feature.auth.ui.sign_up
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.market.univpe.feature.auth.domain.exceptions.AuthException
+import com.market.univpe.feature.auth.domain.usecases.SignInWithGoogleUseCase
+import com.market.univpe.feature.auth.domain.usecases.SignUpUseCase
+import com.market.univpe.feature.user.domain.usecases.CheckProfileCompletionUseCase
+import com.market.univpe.feature.user.domain.usecases.CheckUserIsAdminUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class SignUpViewModel @Inject constructor(
+    private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
+    private val signUpUseCase: SignUpUseCase,
+    private val checkProfileCompletionUseCase: CheckProfileCompletionUseCase,
+    private val checkUserIsAdminUseCase: CheckUserIsAdminUseCase
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(SignUpState())
+    val state = _state.asStateFlow()
+
+    fun onEvent(event: SignUpEvent) {
+        when (event) {
+            is SignUpEvent.EmailChanged -> _state.update { it.copy(email = event.email) }
+            is SignUpEvent.PasswordChanged -> _state.update { it.copy(password = event.password) }
+            is SignUpEvent.ConfirmPasswordChanged -> _state.update { it.copy(confirmPassword = event.confirmPassword) }
+            is SignUpEvent.SignUp -> register()
+            is SignUpEvent.GoogleSignIn -> signInWithGoogle(event.idToken)
+            is SignUpEvent.DismissDialog -> _state.update { it.copy(status = SignUpStatus.Idle) }
+        }
+    }
+
+    private fun register() {
+        val currentState = _state.value
+        val email = currentState.email.trim()
+        val password = currentState.password
+        val confirmPassword = currentState.confirmPassword
+
+        if (email.isBlank() || password.isBlank()) {
+            _state.update { it.copy(status = SignUpStatus.Error("El correo y la contraseña no pueden estar vacíos")) }
+            return
+        }
+
+        if (password != confirmPassword) {
+            _state.update { it.copy(status = SignUpStatus.Error("Las contraseñas no coinciden")) }
+            return
+        }
+
+        _state.update { it.copy(status = SignUpStatus.Loading) }
+
+        viewModelScope.launch {
+            signUpUseCase.invoke(email, password)
+                .onSuccess { session ->
+                    val isComplete = checkProfileCompletionUseCase().getOrDefault(false)
+                    val isAdmin = checkUserIsAdminUseCase().getOrDefault(false)
+                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified, isComplete, isAdmin)) }
+                }
+                .onFailure { error ->
+                    _state.update {
+                        it.copy(
+                            status = SignUpStatus.Error(
+                                error.message ?: "Error al registrar"
+                            )
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(status = SignUpStatus.Loading) }
+
+            signInWithGoogleUseCase(idToken)
+                .onSuccess { session ->
+                    val isComplete = checkProfileCompletionUseCase().getOrDefault(false)
+                    val isAdmin = checkUserIsAdminUseCase().getOrDefault(false)
+                    _state.update { it.copy(status = SignUpStatus.Success(session.isEmailVerified, isComplete, isAdmin)) }
+                }
+                .onFailure { e ->
+                    _state.update {
+                        it.copy(
+                            status = SignUpStatus.Error(
+                                e.message ?: "Error al registrarse"
+                            )
+                        )
+                    }
+                }
+
+        }
+    }
+
+    fun onGoogleSignInError(exception: Throwable) {
+        val newStatus = if (exception is AuthException.UserCancelled) {
+            SignUpStatus.Idle
+        } else {
+            SignUpStatus.Error(exception.message ?: "Error al obtener credenciales")
+        }
+        _state.update { it.copy(status = newStatus) }
+    }
+}

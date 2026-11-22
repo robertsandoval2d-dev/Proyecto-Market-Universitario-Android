@@ -1,0 +1,284 @@
+package com.market.univpe.feature.business.data.repositories
+
+import android.content.Context
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.market.univpe.feature.business.data.datasources.ProductLocalDataSource
+import com.market.univpe.feature.business.data.datasources.ProductRemoteDataSource
+import com.market.univpe.feature.business.data.models.toDomain
+import com.market.univpe.feature.business.data.models.toEntity
+import com.market.univpe.feature.business.data.models.toRoomEntity
+import com.market.univpe.feature.business.data.workers.SyncProductWorker
+import com.market.univpe.feature.business.domain.models.Product
+import com.market.univpe.feature.business.domain.repositories.BusinessStorageRepository
+import com.market.univpe.feature.business.domain.repositories.ProductRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withTimeoutOrNull
+import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
+
+class ProductRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val localDataSource: ProductLocalDataSource,
+    private val remoteDataSource: ProductRemoteDataSource,
+    private val storageRepository: BusinessStorageRepository
+) : ProductRepository {
+
+    override suspend fun createProduct(product: Product): Result<Product> {
+        return try {
+            // 1. Guardar localmente primero (Offline-First) con isSynced = false
+            val roomEntity = product.toRoomEntity(isSynced = false)
+            localDataSource.saveProduct(roomEntity)
+
+            // 2. Programar WorkManager único para sincronizar en segundo plano cuando haya conexión
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val workRequest = OneTimeWorkRequestBuilder<SyncProductWorker>()
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "sync_products_work",
+                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                workRequest
+            )
+
+            // 3. Retornar éxito inmediatamente a la UI desde la base de datos local
+            Result.success(roomEntity.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getProduct(productId: String): Result<Product?> {
+        return try {
+            // 1. Intentar actualizar desde remoto con un timeout rápido (3 segundos) si hay red
+            val remoteEntity = try {
+                withTimeoutOrNull(3000.milliseconds) {
+                    remoteDataSource.getProduct(productId)
+                }
+            } catch (_: Exception) {
+                null // Ignorar error de red / timeout
+            }
+
+            if (remoteEntity != null) {
+                val localEntity = localDataSource.getProductById(productId)
+                if (localEntity == null || localEntity.isSynced) {
+                    localDataSource.saveProduct(remoteEntity.toDomain().toRoomEntity(isSynced = true))
+                }
+            }
+
+            // 2. Devolver desde la base de datos local (Room)
+            val localEntity = localDataSource.getProductById(productId)
+            Result.success(localEntity?.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getPublicProductInfo(productId: String): Result<Product> {
+        return try {
+            val remoteEntity = remoteDataSource.getProduct(productId)
+                ?: return Result.failure(NoSuchElementException("Producto no encontrado"))
+            Result.success(remoteEntity.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getProductsByBusiness(businessId: String): Result<List<Product>> {
+        return try {
+            // 1. Sincronización Remote -> Local con timeout rápido (3 segundos).
+            val remoteEntities = try {
+                withTimeoutOrNull(3000.milliseconds) {
+                    remoteDataSource.getProductsByBusiness(businessId)
+                }
+            } catch (_: Exception) {
+                null // Fallo de red o timeout
+            }
+
+            if (remoteEntities != null) {
+                for (remoteEntity in remoteEntities) {
+                    val localEntity = localDataSource.getProductById(remoteEntity.id)
+                    if (localEntity == null || localEntity.isSynced) {
+                        localDataSource.saveProduct(remoteEntity.toDomain().toRoomEntity(isSynced = true))
+                    }
+                }
+            }
+
+            // 2. Fuente de verdad local (Room): siempre devuelve los datos al instante
+            val localEntities = localDataSource.getProductsByBusiness(businessId)
+            Result.success(localEntities.map { it.toDomain() })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getPublicProductsByBusiness(businessId: String): Result<List<Product>> {
+        return try {
+            val remoteEntities = remoteDataSource.getProductsByBusiness(businessId)
+            Result.success(remoteEntities.map { it.toDomain() })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getCandidateProducts(topTags: List<String>): Result<List<Product>> {
+        return try {
+            val entities = remoteDataSource.getCandidateProducts(topTags)
+            Result.success(entities.map { it.toDomain() })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun getProducts(): Flow<List<Product>> {
+        return remoteDataSource.observeProducts()
+            .map { entity -> entity.map { it.toDomain() } }
+    }
+
+    override suspend fun updateProduct(product: Product): Result<Unit> {
+        return try {
+            val roomEntity = product.toRoomEntity(isSynced = false)
+            localDataSource.saveProduct(roomEntity)
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val workRequest = OneTimeWorkRequestBuilder<SyncProductWorker>()
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "sync_products_work",
+                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                workRequest
+            )
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateBusinessNameInProducts(businessId: String, newBusinessName: String): Result<Unit> {
+        return try {
+            remoteDataSource.updateBusinessNameInProducts(businessId, newBusinessName)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun incrementViews(productId: String): Result<Unit> {
+        return try {
+            // Las vistas las realizan compradores externos, por lo que van directas a remoto
+            remoteDataSource.incrementField(productId, "views")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun incrementSalesCount(productId: String): Result<Unit> {
+        return try {
+            // Como el producto pertenece al vendedor local, incrementSalesCount es Offline-First
+            localDataSource.incrementSalesCount(productId)
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val workRequest = OneTimeWorkRequestBuilder<SyncProductWorker>()
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "sync_products_work",
+                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                workRequest
+            )
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun releaseReservedStock(productId: String, quantity: Int): Result<Unit> {
+        return try {
+            val productResult = getProduct(productId)
+            val product = productResult.getOrNull() ?: return Result.failure(Exception("Producto no encontrado"))
+
+            val currentReserved = product.reservedStock ?: 0
+            val newReserved = (currentReserved - quantity).coerceAtLeast(0)
+
+            val updatedProduct = if (product.stock != null) {
+                val newStock = product.stock + quantity
+                product.copy(
+                    reservedStock = newReserved,
+                    stock = newStock,
+                    isAvailable = newStock > 0
+                )
+            } else {
+                product.copy(
+                    reservedStock = newReserved
+                )
+            }
+
+            remoteDataSource.updateProduct(updatedProduct.toEntity())
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun confirmReservedStock(productId: String, quantity: Int): Result<Unit> {
+        return try {
+            val productResult = getProduct(productId)
+            val product = productResult.getOrNull() ?: return Result.failure(Exception("Producto no encontrado"))
+
+            val currentReserved = product.reservedStock ?: 0
+            val newReserved = (currentReserved - quantity).coerceAtLeast(0)
+
+            val updatedProduct = product.copy(
+                reservedStock = newReserved
+            )
+
+            remoteDataSource.updateProduct(updatedProduct.toEntity())
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteProduct(productId: String): Result<Unit> {
+        return try {
+            // 1. Obtener el producto local para extraer las imágenes en Firebase Storage
+            val localEntity = localDataSource.getProductById(productId)
+            val images = localEntity?.images?.let { if (it.isBlank()) emptyList() else it.split(",") } ?: emptyList()
+
+            // 2. Eliminar las imágenes asociadas de Firebase Storage
+            for (imageUrl in images) {
+                if (imageUrl.isNotBlank() && imageUrl.startsWith("http")) {
+                    storageRepository.deleteImage(imageUrl)
+                }
+            }
+
+            // 3. Eliminar local y remotamente
+            localDataSource.deleteProduct(productId)
+            remoteDataSource.deleteProduct(productId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}

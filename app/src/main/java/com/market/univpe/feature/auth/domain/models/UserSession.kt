@@ -1,0 +1,9 @@
+package com.market.univpe.feature.auth.domain.models
+
+data class UserSession(
+    val uid: String,
+    val email: String,
+    val isEmailVerified: Boolean = false,
+    val displayName: String? = null,
+    val photoUrl: String? = null
+)
